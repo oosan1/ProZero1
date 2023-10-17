@@ -1,0 +1,15 @@
+body {
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+}
+
+#pixiCanvas {
+    position: relative;
+}
+
+#overlay {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+}
