@@ -18,7 +18,10 @@ let maps_scale = 5; //マップ表示スケール
 let total_moving_distance = 0; //合計移動距離
 const MeterPerPixel = 1; //1ピクセルあたり何メートル
 const RunningSpeed = 25714; //走行速度(m/h)
+const RunningSpeed_pixelPerMs = RunningSpeed / (3600000 / 10) / MeterPerPixel;//(pixel/ms)
 let window_size = {x: window.innerWidth, y: window.innerHeight}
+
+const test_col_line = [{x: 0, y: -50}, {x: 50, y: 0}];
 
 const stick_bg_size = 100 //バーチャルスティック背景の直径
 const maps_size = {x: 2000, y: 1000}
@@ -69,7 +72,7 @@ app.stage.hitArea = app.screen;
 app.stage.on('pointerup', onDragEnd);
 app.stage.on('pointerupoutside', onDragEnd);
 
-function onStickDragStart() {
+function onStickDragStart() { // バーチャルスティック管理
     app.stage.on('pointermove', onStickDragMove);
 }
 
@@ -93,17 +96,62 @@ function onDragEnd() {
     moving_distance = {x: 0, y: 0};
 }
 
-function movePosition() { // 走行速度管理
-    const RunningSpeed_pixelPerMs = RunningSpeed / (3600000 / 10) / MeterPerPixel //(pixel/ms)
-    player_position.x += RunningSpeed_pixelPerMs * moving_distance.x
-    player_position.y += RunningSpeed_pixelPerMs * moving_distance.y
+function movePosition() { // 位置情報管理
+    let updated_player_position = {x: 0, y: 0};
+    const new_player_position_temp = {x: player_position.x + RunningSpeed_pixelPerMs * moving_distance.x, y: player_position.y + RunningSpeed_pixelPerMs * moving_distance.y};
+    const collision_detection = collision(test_col_line, [{x: player_position.x, y: player_position.y}, {x: new_player_position_temp.x, y: new_player_position_temp.y}]);
+    if (collision_detection["isIntersect"]) {
+        updated_player_position = shortest_distance(test_col_line, {x: new_player_position_temp.x, y: new_player_position_temp.y});
+    }else {
+        updated_player_position = new_player_position_temp;
+    };
+    total_moving_distance += Math.sqrt(Math.pow(updated_player_position.x - player_position.x, 2) + Math.pow(updated_player_position.y - player_position.y, 2))
+    player_position.x = updated_player_position.x;
+    player_position.y = updated_player_position.y;
 };
+
+function collision(pos1, pos2) { // 当たり判定
+    //posN = [{x:0, y:0}, {x:0, y:0}] A:pos1[0] B:pos1[1] C:pos2[0] D:pos2[1]
+
+    let intersect_pos = {x:0, y:0};
+    const ACx = pos2[0].x - pos1[0].x;
+    const ACy = pos2[0].y - pos1[0].y;
+    const denominator = (pos1[1].x - pos1[0].x)*(pos2[1].y - pos2[0].y) - (pos1[1].y - pos1[0].y)*(pos2[1].x - pos2[0].x);
+    if (denominator == 0) {
+        return {"isIntersect": false, "intersect_pos": intersect_pos}; //2線分が平行もしくは重なっている
+    } 
+    r = ((pos2[1].y - pos2[0].y)*ACx - (pos2[1].x - pos2[0].x)*ACy) / denominator;
+    s = ((pos1[1].y - pos1[0].y)*ACx - (pos1[1].x - pos1[0].x)*ACy) / denominator;
+    if (r < 0 || r > 1 || s < 0 || s > 1) {
+        return {"isIntersect": false, "intersect_pos": intersect_pos}; //2線分が交差しない
+    }
+    intersect_pos = {x: pos1[0].x + (pos1[1].x - pos1[0].x)*r, y: pos1[0].y + (pos1[1].y - pos1[0].y)*s};
+    return {"isIntersect": true, "intersect_pos": intersect_pos};
+
+    //https://www.hiramine.com/programming/graphics/2d_segmentintersection.html
+}
+
+function shortest_distance(line, point) {
+    //line = [{x: 0, y: 0}, {x: 10, y: 10}], point = {x: 5, y: 5}
+
+    const line_vec2 = {x: line[1].x - line[0].x, y: line[1].y - line[0].y}; // 線のベクトル
+    const line_vec2_mag = Math.sqrt(line_vec2.x**2 + line_vec2.y**2); // ベクトルの大きさ
+    const line_norm_vec2 = {x: line_vec2.x / line_vec2_mag, y: line_vec2.y / line_vec2_mag}; //ベクトル正規化
+    const lineToPoint_vec2 = {x: point.x - line[0].x, y: point.y - line[0].y}; //線の始点とpointのベクトル
+    const times = line_norm_vec2.x*lineToPoint_vec2.x + line_norm_vec2.y*lineToPoint_vec2.y;
+    //なぜ途中で途切れているのか
+
+    res_point = {x: line[0].x + line_norm_vec2.x*times, y: line[0].y + line_norm_vec2.y*times};
+
+    return res_point;
+    //https://www.nekonecode.com/math-lab/pages/collision2/point-and-line-nearest/
+}
 
 function animTick() {
     maps.position = {x: -player_position.x * maps_scale + window_size.x / 2, y: player_position.y * maps_scale + window_size.y / 2};
     maps.scale = {x: maps_scale, y: maps_scale};
-    total_moving_distance += Math.sqrt(Math.pow(player_position.x - player_position_last.x, 2) + Math.pow(player_position.y - player_position_last.y, 2));
-    player_position_last = {x: player_position.x, y: player_position.y};
+    //total_moving_distance += Math.sqrt(Math.pow(player_position.x - player_position_last.x, 2) + Math.pow(player_position.y - player_position_last.y, 2));
+    //player_position_last = {x: player_position.x, y: player_position.y};
     document.getElementById('overlay').textContent = `合計移動距離: ${total_moving_distance}m`;
 }
 
