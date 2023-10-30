@@ -18,14 +18,11 @@ let maps_scale = 15; //マップ表示スケール
 let total_moving_distance = 0; //合計移動距離
 const MeterPerPixel = 1; //1ピクセルあたり何メートル
 const RunningSpeed = 25714; //走行速度(m/h)
-const RunningSpeed_pixelPerMs = RunningSpeed / (3600000 / 10) / MeterPerPixel;//(pixel/ms)
+const RunningSpeed_pixelPerMs = RunningSpeed / (3600000 / 10) / MeterPerPixel; //(pixel/ms)
 let window_size = {x: window.innerWidth, y: window.innerHeight}
 
-const test_col_line = [{x: 0, y: -50}, {x: 50, y: 0}];
-const test_col_lines = [[{x: 0, y: -50}, {x: 50, y: 0}], [{x: 0, y: -25}, {x: 25, y: 0}], [{x: 25, y: 0}, {x: 50, y: -25}]];
-//const test_col_lines = [[{x: 0, y: -25}, {x: 25, y: 0}]]
-//const test_col_lines = [[{x: -10, y: -10}, {x: 10, y: -10}], [{x: 10, y: 10}, {x: 10, y: -10}], [{x: 25, y: 0}, {x: 50, y: -25}]];
-
+// 当たり判定壁をwall.jsからロード
+const test_col_lines = wall_colision["1F"];
 
 const stick_bg_size = 100 //バーチャルスティック背景の直径
 const maps_size = {x: 2000, y: 1000}
@@ -116,10 +113,12 @@ function movePosition() { // 位置情報管理
     let Intersect_count = 0;
     const new_player_position_temp = {x: player_position.x + RunningSpeed_pixelPerMs * moving_distance.x, y: player_position.y + RunningSpeed_pixelPerMs * moving_distance.y};
     let collision_detection = {};
+
+    //この当たり判定処理を関数へ
     for (let line of test_col_lines) {
         if (!isIntersected) { collision_detection = collision(line, [{x: player_position.x, y: player_position.y}, {x: new_player_position_temp.x, y: new_player_position_temp.y}]); }
         afterCollision_position = shortest_distance(line, {x: new_player_position_temp.x, y: new_player_position_temp.y}, -0.01);
-        if (afterCollision_position[1] < 0.1) { Intersect_count += 1; } //距離が近い壁の個数をカウント
+        if (afterCollision_position[1] < 0.05) { Intersect_count += 1; } //距離が近い壁の個数をカウント
         if (Intersect_count > 1) { 
             //近くに壁が2つある場合はすり抜け防止のために移動させない
             updated_player_position = player_position;
