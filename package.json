@@ -1,0 +1,17 @@
+{
+  "name": "my-package",
+  "description": "my first package ever",
+  "license": "MIT",
+  "version": "1.0.0",
+  "bin": "./cli.js",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "axios": "^0.18.0"
+  },
+  "devDependencies": {
+    "eslint": "^5.14.1"
+  }
+}
