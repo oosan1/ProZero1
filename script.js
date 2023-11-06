@@ -13,15 +13,9 @@ document.body.appendChild(app.view);
 window.addEventListener("resize", resize);
 
 // 変数の初期化
-<<<<<<< HEAD
-let player_position = { x: 0, y: 0 };
-let player_position_last = { x: 0, y: 0 };
-let moving_distance = { x: 0, y: 0 };
-=======
 let player_position = {x: 5, y: -5};
 let player_position_last = {x: 5, y: -5};
 let moving_distance = {x: 0, y: 0};
->>>>>>> 5375aaa (階段の画像を追加)
 let maps_scale = 15; //マップ表示スケール
 let total_moving_distance = 0; //合計移動距離
 const MeterPerPixel = 1; //1ピクセルあたり何メートル
@@ -139,58 +133,25 @@ function movePosition() {
     y: player_position.y + RunningSpeed_pixelPerMs * moving_distance.y,
   };
   let collision_detection = {};
-
-<<<<<<< HEAD
   //この当たり判定処理を関数へ
   for (let line of test_col_lines) {
-    if (!isIntersected) {
-      collision_detection = collision(line, [
-        { x: player_position.x, y: player_position.y },
-        { x: new_player_position_temp.x, y: new_player_position_temp.y },
-      ]);
-=======
-    //この当たり判定処理を関数へ
-    for (let line of test_col_lines) {
-        if (!isIntersected) { collision_detection = collision(line, [{x: player_position.x, y: player_position.y}, {x: new_player_position_temp.x, y: new_player_position_temp.y}]); }
-        afterCollision_position = shortest_distance(line, {x: new_player_position_temp.x, y: new_player_position_temp.y}, -0.01);
-        if (afterCollision_position[1] < 0.07) { Intersect_count += 1; } //距離が近い壁の個数をカウント
-        if (Intersect_count > 1) { 
-            //近くに壁が2つある場合はすり抜け防止のために移動させない
-            //console.log("aaa");
-            updated_player_position = player_position;
-            break;
-        }
-        if (!isIntersected) {
-            if (collision_detection["isIntersect"]) {
-                updated_player_position = afterCollision_position[0];
-                isIntersected = true;
-            }else {
-                updated_player_position = new_player_position_temp;
-            };
-        }
->>>>>>> 5375aaa (階段の画像を追加)
-    }
-    afterCollision_position = shortest_distance(
-      line,
-      { x: new_player_position_temp.x, y: new_player_position_temp.y },
-      -0.01,
-    );
-    if (afterCollision_position[1] < 0.05) {
-      Intersect_count += 1;
-    } //距離が近い壁の個数をカウント
-    if (Intersect_count > 1) {
-      //近くに壁が2つある場合はすり抜け防止のために移動させない
-      updated_player_position = player_position;
-      break;
-    }
-    if (!isIntersected) {
-      if (collision_detection["isIntersect"]) {
-        updated_player_position = afterCollision_position[0];
-        isIntersected = true;
-      } else {
-        updated_player_position = new_player_position_temp;
+      if (!isIntersected) { collision_detection = collision(line, [{x: player_position.x, y: player_position.y}, {x: new_player_position_temp.x, y: new_player_position_temp.y}]); }
+      afterCollision_position = shortest_distance(line, {x: new_player_position_temp.x, y: new_player_position_temp.y}, -0.01);
+      if (afterCollision_position[1] < 0.07) { Intersect_count += 1; } //距離が近い壁の個数をカウント
+      if (Intersect_count > 1) { 
+          //近くに壁が2つある場合はすり抜け防止のために移動させない
+          //console.log("aaa");
+          updated_player_position = player_position;
+          break;
       }
-    }
+      if (!isIntersected) {
+          if (collision_detection["isIntersect"]) {
+              updated_player_position = afterCollision_position[0];
+              isIntersected = true;
+          }else {
+              updated_player_position = new_player_position_temp;
+          };
+      }
   }
   total_moving_distance += Math.sqrt(
     Math.pow(updated_player_position.x - player_position.x, 2) +
