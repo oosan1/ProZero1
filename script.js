@@ -20,7 +20,8 @@ let maps_scale = 15; //マップ表示スケール
 let total_moving_distance = 0; //合計移動距離
 const MeterPerPixel = 1; //1ピクセルあたり何メートル
 const RunningSpeed = 25714; //走行速度(m/h)
-const RunningSpeed_pixelPerMs = RunningSpeed / (3600000 / 10) / MeterPerPixel; //(pixel/ms)
+const RunningSpeed_pixelPerMs = RunningSpeed / (3600000 / 5) / MeterPerPixel; //(pixel/ms)
+console.log(RunningSpeed_pixelPerMs);
 let window_size = { x: window.innerWidth, y: window.innerHeight };
 
 // 当たり判定壁をwall.jsからロード
@@ -85,7 +86,7 @@ app.stage.addChild(VS_background, VS_stick, player, test_sp);
 
 resize();
 //setInterval(function test() {console.log(player_position)}, 100);
-setInterval(movePosition, 10);
+setInterval(movePosition, 5);
 setInterval(animTick, 16);
 app.stage.eventMode = "static";
 app.stage.hitArea = app.screen;
@@ -122,7 +123,9 @@ function onDragEnd() {
   moving_distance = { x: 0, y: 0 };
 }
 
+let last_player_position = { x: 0, y: 0 };
 function movePosition() {
+  
   // 位置情報管理
   let afterCollision_position = { x: 0, y: 0 };
   let updated_player_position = { x: 0, y: 0 };
@@ -134,31 +137,43 @@ function movePosition() {
   };
   let collision_detection = {};
   //この当たり判定処理を関数へ
+  //壁の当たり判定
   for (let line of test_col_lines) {
       if (!isIntersected) { collision_detection = collision(line, [{x: player_position.x, y: player_position.y}, {x: new_player_position_temp.x, y: new_player_position_temp.y}]); }
       afterCollision_position = shortest_distance(line, {x: new_player_position_temp.x, y: new_player_position_temp.y}, -0.01);
-      if (afterCollision_position[1] < 0.07) { Intersect_count += 1; } //距離が近い壁の個数をカウント
+      if (afterCollision_position[1] < 0.03 && afterCollision_position[2]) { Intersect_count += 1; } //距離が近い壁の個数をカウント
       if (Intersect_count > 1) { 
-          //近くに壁が2つある場合はすり抜け防止のために移動させない
-          //console.log("aaa");
-          updated_player_position = player_position;
-          break;
+        //近くに壁が2つある場合はすり抜け防止のために後方へ移動
+        updated_player_position = last_player_position;
+        console.log("aaa");
+        break;
       }
       if (!isIntersected) {
           if (collision_detection["isIntersect"]) {
-              updated_player_position = afterCollision_position[0];
-              isIntersected = true;
+            updated_player_position = afterCollision_position[0];
+            isIntersected = true;
           }else {
-              updated_player_position = new_player_position_temp;
+            updated_player_position = new_player_position_temp;
           };
       }
   }
+
+  //階段の判定
+  for (let stair_line of stairs["1F_UP"]) {
+    collision_detection = collision(stair_line["line"], [{x: player_position.x, y: player_position.y}, {x: new_player_position_temp.x, y: new_player_position_temp.y}]);
+    if (collision_detection["isIntersect"]) {
+      updated_player_position = stair_line["destination"];
+    }
+  }
+
   total_moving_distance += Math.sqrt(
     Math.pow(updated_player_position.x - player_position.x, 2) +
       Math.pow(updated_player_position.y - player_position.y, 2),
   );
   player_position.x = updated_player_position.x;
   player_position.y = updated_player_position.y;
+  last_player_position.x = updated_player_position.x;
+  last_player_position.y = updated_player_position.y;
 }
 
 function collision(pos1, pos2) {
@@ -227,9 +242,14 @@ function shortest_distance(line, point, margin) {
     y: shortest_point.y + pointToRes_vec2.y * margin_times,
   };
 
-  if (shortest_times > 0 && line_vec2_mag > shortest_times) {
+  line_max = {x: Math.max(line[0].x, line[1].x), y: Math.max(line[0].y, line[1].y)};
+  line_min = {x: Math.min(line[0].x, line[1].x), y: Math.min(line[0].y, line[1].y)}
+  if (shortest_point.x <= line_max.x && shortest_point.x >= line_min.x && shortest_point.y <= line_max.y && shortest_point.y <= line_max.y) {
     onLine = true;
   }
+  /*if (shortest_times > 0 && line_vec2_mag > shortest_times) {
+    onLine = true;
+  }*/
   return [res_point, pointToRes_vec2_mag, onLine];
   //https://www.nekonecode.com/math-lab/pages/collision2/point-and-line-nearest/
 }
