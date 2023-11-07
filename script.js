@@ -143,8 +143,8 @@ function movePosition() {
       afterCollision_position = shortest_distance(line, {x: new_player_position_temp.x, y: new_player_position_temp.y}, -0.01);
       if (afterCollision_position[1] < 0.08 && afterCollision_position[2]) { Intersect_count += 1; } //距離が近い壁の個数をカウント
       if (Intersect_count > 1) { 
-        //近くに壁が2つある場合はすり抜け防止のために後方へ移動
-        updated_player_position = last_player_position;
+        //近くに壁が2つある場合はすり抜け防止のために移動しない
+        updated_player_position = player_position;
         console.log("aaa");
         break;
       }
@@ -157,6 +157,7 @@ function movePosition() {
           };
       }
   }
+  console.log(Intersect_count);
 
   //階段の判定
   for (let stair_line of stairs["1F_UP"]) {
