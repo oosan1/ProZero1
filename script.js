@@ -141,7 +141,7 @@ function movePosition() {
   for (let line of test_col_lines) {
       if (!isIntersected) { collision_detection = collision(line, [{x: player_position.x, y: player_position.y}, {x: new_player_position_temp.x, y: new_player_position_temp.y}]); }
       afterCollision_position = shortest_distance(line, {x: new_player_position_temp.x, y: new_player_position_temp.y}, -0.01);
-      if (afterCollision_position[1] < 0.03 && afterCollision_position[2]) { Intersect_count += 1; } //距離が近い壁の個数をカウント
+      if (afterCollision_position[1] < 0.05 && afterCollision_position[2]) { Intersect_count += 1; } //距離が近い壁の個数をカウント
       if (Intersect_count > 1) { 
         //近くに壁が2つある場合はすり抜け防止のために後方へ移動
         updated_player_position = last_player_position;
