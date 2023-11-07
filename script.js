@@ -22,6 +22,7 @@ const RunningSpeed = 25714; //走行速度(m/h)
 const RunningSpeed_pixelPerMs = RunningSpeed / (3600000 / 5) / MeterPerPixel; //(pixel/ms)
 console.log(RunningSpeed_pixelPerMs);
 let window_size = { x: window.innerWidth, y: window.innerHeight };
+let last_time = 0;
 
 // 当たり判定壁をwall.jsからロード
 const test_col_lines = wall_colision["1F"];
@@ -124,7 +125,8 @@ function onDragEnd() {
 
 let last_player_position = { x: 0, y: 0 };
 function movePosition() {
-  
+  console.log(performance.now() - last_time);
+  last_time = performance.now();
   // 位置情報管理
   let afterCollision_position = { x: 0, y: 0 };
   let updated_player_position = { x: 0, y: 0 };
