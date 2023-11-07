@@ -1,4 +1,3 @@
-
 let app = new PIXI.Application({
   width: window.innerWidth,
   height: window.innerHeight,
@@ -17,7 +16,7 @@ let player_position_last = {x: 5, y: -5};
 let moving_distance = {x: 0, y: 0};
 let maps_scale = 15; //マップ表示スケール
 let total_moving_distance = 0; //合計移動距離
-const moving_msec = 5; // 移動処理を何ミリ秒ごとに行うのか
+const moving_msec = 10; // 移動処理を何ミリ秒ごとに行うのか
 const MeterPerPixel = 1; //1ピクセルあたり何メートル
 const RunningSpeed = 25714; //走行速度(m/h)
 const RunningSpeed_pixelPerMs = RunningSpeed / (3600000 / moving_msec) / MeterPerPixel; //(pixel/ms)
@@ -27,6 +26,12 @@ let last_time = 0;
 
 // 当たり判定壁をwall.jsからロード
 const test_col_lines = wall_colision["1F"];
+
+//壁のベクトル等を事前計算
+const line_vectors = []
+for (let line of test_col_lines) {
+  line_vectors.push(vecNormalize(line));
+}
 
 const stick_bg_size = 100; //バーチャルスティック背景の直径
 const maps_size = { x: 2000, y: 1000 };
@@ -86,7 +91,7 @@ test_sp.anchor = { x: 0.5, y: 0.5 };
 app.stage.addChild(VS_background, VS_stick, player, test_sp);
 
 resize();
-setTimeout(movePosition, 5);
+setTimeout(movePosition, moving_msec);
 setInterval(animTick, 16);
 app.stage.eventMode = "static";
 app.stage.hitArea = app.screen;
@@ -123,10 +128,7 @@ function onDragEnd() {
   moving_distance = { x: 0, y: 0 };
 }
 
-let last_player_position = { x: 0, y: 0 };
 function movePosition() {
-  console.log(performance.now() - last_time);
-  last_time = performance.now();
   const first_time = performance.now();
   // 位置情報管理
   let afterCollision_position = { x: 0, y: 0 };
@@ -138,11 +140,12 @@ function movePosition() {
     y: player_position.y + RunningSpeed_pixelPerMs * moving_distance.y,
   };
   let collision_detection = {};
+  let count = 0;
   //この当たり判定処理を関数へ
   //壁の当たり判定
   for (let line of test_col_lines) {
       if (!isIntersected) { collision_detection = collision(line, [{x: player_position.x, y: player_position.y}, {x: new_player_position_temp.x, y: new_player_position_temp.y}]); }
-      afterCollision_position = shortest_distance(line, {x: new_player_position_temp.x, y: new_player_position_temp.y}, -0.01);
+      afterCollision_position = shortest_distance(line, {x: new_player_position_temp.x, y: new_player_position_temp.y}, -0.01, count);
       if (afterCollision_position[1] < 0.03 && afterCollision_position[2]) { Intersect_count += 1; } //距離が近い壁の個数をカウント
       if (Intersect_count > 1) { 
         //近くに壁が2つある場合はすり抜け防止のために移動しない
@@ -157,6 +160,7 @@ function movePosition() {
             updated_player_position = new_player_position_temp;
           };
       }
+      count++;
   }
 
   //階段の判定
@@ -171,10 +175,11 @@ function movePosition() {
     Math.pow(updated_player_position.x - player_position.x, 2) +
       Math.pow(updated_player_position.y - player_position.y, 2),
   );
+  
+  console.log(performance.now() - last_time);
+  last_time = performance.now();
   player_position.x = updated_player_position.x;
   player_position.y = updated_player_position.y;
-  last_player_position.x = updated_player_position.x;
-  last_player_position.y = updated_player_position.y;
 
   const end_time = performance.now();
   setTimeout(movePosition, moving_msec - (end_time - first_time));
@@ -212,19 +217,12 @@ function collision(pos1, pos2) {
   //https://www.hiramine.com/programming/graphics/2d_segmentintersection.html
 }
 
-function shortest_distance(line, point, margin) {
+function shortest_distance(line, point, margin, line_index) {
   //line = [{x: 0, y: 0}, {x: 10, y: 10}], point = {x: 5, y: 5}
 
   let onLine = false; //最短点が線上にあるかどうか
-  //最短距離
-  //line_vec2, line_vec2_mag, line_norm_vec2, line_max, line_minは事前計算
-  //line_norm_vec2, linw_max, line_minはグローバル
-  const line_vec2 = { x: line[1].x - line[0].x, y: line[1].y - line[0].y }; // 線のベクトル
-  const line_vec2_mag = Math.sqrt(line_vec2.x ** 2 + line_vec2.y ** 2); // ベクトルの大きさ
-  const line_norm_vec2 = {
-    x: line_vec2.x / line_vec2_mag,
-    y: line_vec2.y / line_vec2_mag,
-  }; //ベクトル正規化
+  const line_norm_vec2 = line_vectors[line_index][0];
+  line_vec2_mag = line_vectors[line_index][1];
   const lineToPoint_vec2 = { x: point.x - line[0].x, y: point.y - line[0].y }; //線の始点とpointのベクトル
   const shortest_times =
     line_norm_vec2.x * lineToPoint_vec2.x +
@@ -247,12 +245,6 @@ function shortest_distance(line, point, margin) {
     x: shortest_point.x + pointToRes_vec2.x * margin_times,
     y: shortest_point.y + pointToRes_vec2.y * margin_times,
   };
-
-  /*line_max = {x: Math.max(line[0].x, line[1].x), y: Math.max(line[0].y, line[1].y)};
-  line_min = {x: Math.min(line[0].x, line[1].x), y: Math.min(line[0].y, line[1].y)}
-  if (shortest_point.x <= line_max.x && shortest_point.x >= line_min.x && shortest_point.y <= line_max.y && shortest_point.y <= line_max.y) {
-    onLine = true;
-  }*/
   if (shortest_times > 0 && line_vec2_mag > shortest_times) {
     onLine = true;
   }
@@ -281,4 +273,15 @@ function resize() {
   VS_background.position = { x: window_size.x - 200, y: window_size.y - 200 };
   VS_stick.position = { x: window_size.x - 200, y: window_size.y - 200 };
   player.position = { x: window_size.x / 2, y: window_size.y / 2 };
+}
+
+function vecNormalize(line) {
+  const line_vec2 = { x: line[1].x - line[0].x, y: line[1].y - line[0].y }; // 線のベクトル
+  const line_vec2_mag = Math.sqrt(line_vec2.x ** 2 + line_vec2.y ** 2); // ベクトルの大きさ
+  const line_norm_vec2 = {
+    x: line_vec2.x / line_vec2_mag,
+    y: line_vec2.y / line_vec2_mag,
+  };
+
+  return [line_norm_vec2, line_vec2_mag];
 }
