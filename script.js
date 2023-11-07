@@ -211,6 +211,8 @@ function shortest_distance(line, point, margin) {
 
   let onLine = false; //最短点が線上にあるかどうか
   //最短距離
+  //line_vec2, line_vec2_mag, line_norm_vec2, line_max, line_minは事前計算
+  //line_norm_vec2, linw_max, line_minはグローバル
   const line_vec2 = { x: line[1].x - line[0].x, y: line[1].y - line[0].y }; // 線のベクトル
   const line_vec2_mag = Math.sqrt(line_vec2.x ** 2 + line_vec2.y ** 2); // ベクトルの大きさ
   const line_norm_vec2 = {
@@ -240,14 +242,14 @@ function shortest_distance(line, point, margin) {
     y: shortest_point.y + pointToRes_vec2.y * margin_times,
   };
 
-  line_max = {x: Math.max(line[0].x, line[1].x), y: Math.max(line[0].y, line[1].y)};
+  /*line_max = {x: Math.max(line[0].x, line[1].x), y: Math.max(line[0].y, line[1].y)};
   line_min = {x: Math.min(line[0].x, line[1].x), y: Math.min(line[0].y, line[1].y)}
   if (shortest_point.x <= line_max.x && shortest_point.x >= line_min.x && shortest_point.y <= line_max.y && shortest_point.y <= line_max.y) {
     onLine = true;
-  }
-  /*if (shortest_times > 0 && line_vec2_mag > shortest_times) {
-    onLine = true;
   }*/
+  if (shortest_times > 0 && line_vec2_mag > shortest_times) {
+    onLine = true;
+  }
   return [res_point, pointToRes_vec2_mag, onLine];
   //https://www.nekonecode.com/math-lab/pages/collision2/point-and-line-nearest/
 }
