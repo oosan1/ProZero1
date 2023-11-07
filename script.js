@@ -17,9 +17,10 @@ let player_position_last = {x: 5, y: -5};
 let moving_distance = {x: 0, y: 0};
 let maps_scale = 15; //マップ表示スケール
 let total_moving_distance = 0; //合計移動距離
+const moving_msec = 5; // 移動処理を何ミリ秒ごとに行うのか
 const MeterPerPixel = 1; //1ピクセルあたり何メートル
 const RunningSpeed = 25714; //走行速度(m/h)
-const RunningSpeed_pixelPerMs = RunningSpeed / (3600000 / 5) / MeterPerPixel; //(pixel/ms)
+const RunningSpeed_pixelPerMs = RunningSpeed / (3600000 / moving_msec) / MeterPerPixel; //(pixel/ms)
 console.log(RunningSpeed_pixelPerMs);
 let window_size = { x: window.innerWidth, y: window.innerHeight };
 let last_time = 0;
@@ -85,8 +86,7 @@ test_sp.anchor = { x: 0.5, y: 0.5 };
 app.stage.addChild(VS_background, VS_stick, player, test_sp);
 
 resize();
-//setInterval(function test() {console.log(player_position)}, 100);
-setInterval(movePosition, 5);
+setTimeout(movePosition, 5);
 setInterval(animTick, 16);
 app.stage.eventMode = "static";
 app.stage.hitArea = app.screen;
@@ -127,6 +127,7 @@ let last_player_position = { x: 0, y: 0 };
 function movePosition() {
   console.log(performance.now() - last_time);
   last_time = performance.now();
+  const first_time = performance.now();
   // 位置情報管理
   let afterCollision_position = { x: 0, y: 0 };
   let updated_player_position = { x: 0, y: 0 };
@@ -174,6 +175,9 @@ function movePosition() {
   player_position.y = updated_player_position.y;
   last_player_position.x = updated_player_position.x;
   last_player_position.y = updated_player_position.y;
+
+  const end_time = performance.now();
+  setTimeout(movePosition, moving_msec - (end_time - first_time));
 }
 
 function collision(pos1, pos2) {
