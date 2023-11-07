@@ -16,10 +16,9 @@ let player_position_last = {x: 5, y: -5};
 let moving_distance = {x: 0, y: 0};
 let maps_scale = 15; //マップ表示スケール
 let total_moving_distance = 0; //合計移動距離
-const moving_msec = 10; // 移動処理を何ミリ秒ごとに行うのか
 const MeterPerPixel = 1; //1ピクセルあたり何メートル
 const RunningSpeed = 25714; //走行速度(m/h)
-let RunningSpeed_pixelPerMs = RunningSpeed / (3600000 / moving_msec) / MeterPerPixel; //(pixel/ms)
+let RunningSpeed_pixelPerMs = RunningSpeed / (3600000 / 5) / MeterPerPixel; //(pixel/ms)
 console.log(RunningSpeed_pixelPerMs);
 let window_size = { x: window.innerWidth, y: window.innerHeight };
 let last_time = 0;
@@ -91,7 +90,7 @@ test_sp.anchor = { x: 0.5, y: 0.5 };
 app.stage.addChild(VS_background, VS_stick, player, test_sp);
 
 resize();
-setTimeout(movePosition, moving_msec);
+setInterval(movePosition, 5);
 setInterval(animTick, 16);
 app.stage.eventMode = "static";
 app.stage.hitArea = app.screen;
@@ -129,13 +128,13 @@ function onDragEnd() {
 }
 
 function movePosition() {
-  const first_time = performance.now();
   // 位置情報管理
   let afterCollision_position = { x: 0, y: 0 };
   let updated_player_position = { x: 0, y: 0 };
   let isIntersected = false;
   let Intersect_count = 0;
-  RunningSpeed_pixelPerMs = RunningSpeed / (3600000 / (performance.now() - last_time)) / MeterPerPixel; //処理速度に合わせて調整
+  const moving_sec = performance.now() - last_time;
+  RunningSpeed_pixelPerMs = RunningSpeed / (3600000 / moving_sec) / MeterPerPixel; //処理速度に合わせて調整
   last_time = performance.now();
   const new_player_position_temp = {
     x: player_position.x + RunningSpeed_pixelPerMs * moving_distance.x,
@@ -181,8 +180,6 @@ function movePosition() {
   player_position.x = updated_player_position.x;
   player_position.y = updated_player_position.y;
 
-  const end_time = performance.now();
-  setTimeout(movePosition, moving_msec - (end_time - first_time));
 }
 
 function collision(pos1, pos2) {
