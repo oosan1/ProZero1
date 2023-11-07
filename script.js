@@ -134,7 +134,7 @@ function movePosition() {
   let isIntersected = false;
   let Intersect_count = 0;
   const moving_sec = performance.now() - last_time;
-  RunningSpeed_pixelPerMs = RunningSpeed / (3600000 / moving_sec) / MeterPerPixel; //処理速度に合わせて調整
+  RunningSpeed_pixelPerMs = RunningSpeed / (3600000 / moving_sec) / MeterPerPixel; //処理速度に合わせて調整する
   last_time = performance.now();
   const new_player_position_temp = {
     x: player_position.x + RunningSpeed_pixelPerMs * moving_distance.x,
