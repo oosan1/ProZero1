@@ -19,7 +19,7 @@ let total_moving_distance = 0; //合計移動距離
 const moving_msec = 10; // 移動処理を何ミリ秒ごとに行うのか
 const MeterPerPixel = 1; //1ピクセルあたり何メートル
 const RunningSpeed = 25714; //走行速度(m/h)
-const RunningSpeed_pixelPerMs = RunningSpeed / (3600000 / moving_msec) / MeterPerPixel; //(pixel/ms)
+let RunningSpeed_pixelPerMs = RunningSpeed / (3600000 / moving_msec) / MeterPerPixel; //(pixel/ms)
 console.log(RunningSpeed_pixelPerMs);
 let window_size = { x: window.innerWidth, y: window.innerHeight };
 let last_time = 0;
@@ -135,6 +135,8 @@ function movePosition() {
   let updated_player_position = { x: 0, y: 0 };
   let isIntersected = false;
   let Intersect_count = 0;
+  RunningSpeed_pixelPerMs = RunningSpeed / (3600000 / (performance.now() - last_time)) / MeterPerPixel; //処理速度に合わせて調整
+  last_time = performance.now();
   const new_player_position_temp = {
     x: player_position.x + RunningSpeed_pixelPerMs * moving_distance.x,
     y: player_position.y + RunningSpeed_pixelPerMs * moving_distance.y,
@@ -175,9 +177,7 @@ function movePosition() {
     Math.pow(updated_player_position.x - player_position.x, 2) +
       Math.pow(updated_player_position.y - player_position.y, 2),
   );
-  
-  console.log(performance.now() - last_time);
-  last_time = performance.now();
+
   player_position.x = updated_player_position.x;
   player_position.y = updated_player_position.y;
 
