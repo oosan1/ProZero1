@@ -1,4 +1,3 @@
-// test
 
 let app = new PIXI.Application({
   width: window.innerWidth,
