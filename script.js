@@ -20,7 +20,7 @@ let maps_scale = 15; //マップ表示スケール
 let total_moving_distance = 0; //合計移動距離
 const MeterPerPixel = 1; //1ピクセルあたり何メートル
 const RunningSpeed = 25714; //走行速度(m/h)
-const RunningSpeed_pixelPerMs = RunningSpeed / (3600000 / 5) / MeterPerPixel; //(pixel/ms)
+const RunningSpeed_pixelPerMs = RunningSpeed / (3600000 / 10) / MeterPerPixel; //(pixel/ms)
 console.log(RunningSpeed_pixelPerMs);
 let window_size = { x: window.innerWidth, y: window.innerHeight };
 
@@ -86,7 +86,7 @@ app.stage.addChild(VS_background, VS_stick, player, test_sp);
 
 resize();
 //setInterval(function test() {console.log(player_position)}, 100);
-setInterval(movePosition, 5);
+setInterval(movePosition, 10);
 setInterval(animTick, 16);
 app.stage.eventMode = "static";
 app.stage.hitArea = app.screen;
