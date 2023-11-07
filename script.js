@@ -125,6 +125,7 @@ function onDragEnd() {
 
 let last_player_position = { x: 0, y: 0 };
 function movePosition() {
+  const startTime = performance.now(); // 開始時間
   
   // 位置情報管理
   let afterCollision_position = { x: 0, y: 0 };
@@ -174,6 +175,9 @@ function movePosition() {
   player_position.y = updated_player_position.y;
   last_player_position.x = updated_player_position.x;
   last_player_position.y = updated_player_position.y;
+
+  const endTime = performance.now(); // 終了時間
+  console.log(endTime - startTime); // 何ミリ秒かかったかを表示する
 }
 
 function collision(pos1, pos2) {
