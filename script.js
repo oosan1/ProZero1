@@ -13,36 +13,39 @@ window.addEventListener("resize", resize);
 // 変数の初期化
 let player_position = {x: 5, y: -5};
 let player_position_last = {x: 5, y: -5};
+let floor = "1";
 let moving_distance = {x: 0, y: 0};
 let maps_scale = 15; //マップ表示スケール constでもいい
 let total_moving_distance = 0; //合計移動距離
 const MeterPerPixel = 1; //1ピクセルあたり何メートル
 const RunningSpeed = 25714; //走行速度(m/h)
 let RunningSpeed_pixelPerMs = RunningSpeed / (3600000 / 5) / MeterPerPixel; //(pixel/ms)
-console.log(RunningSpeed_pixelPerMs);
 let window_size = { x: window.innerWidth, y: window.innerHeight };
 let last_time = 0;
 
 // 当たり判定壁をwall.jsからロード
-const test_col_lines = wall_colision["1F"];
-
 //壁のベクトル等を事前計算
-const line_vectors = []
-for (let line of test_col_lines) {
-  line_vectors.push(vecNormalize(line));
+let wall_vectors = {};
+let wall_vectors_list = [];
+for (let [key, value] of Object.entries(wall_colision)) {
+  for (let line of value) {
+    wall_vectors_list.push(vecNormalize(line));
+  }
+  wall_vectors[key] = wall_vectors_list;
 }
 
 const stick_bg_size = 100; //バーチャルスティック背景の直径
-const maps_size = { x: 2000, y: 1000 }; //使ってない
+//const maps_size = { x: 2000, y: 1000 }; //使ってない
 
 // マップスプライト
+//ここにすべての階のテクスチャを読み込む処理
 const maps = PIXI.Sprite.from("testmap01.png");
+
 
 maps.texture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
 app.stage.addChild(maps);
 
 // バーチャルスティックスプライト
-//これらはclassでもできるかも
 const VS_background_texture = new PIXI.Graphics();
 VS_background_texture.lineStyle(3, 0x00000, 0.5, 1);
 VS_background_texture.beginFill(0x00000, 0.2, 1);
@@ -130,49 +133,25 @@ function onDragEnd() {
 
 function movePosition() {
   // 位置情報管理
-  let afterCollision_position = { x: 0, y: 0 };
   let updated_player_position = { x: 0, y: 0 };
-  let isIntersected = false;
-  let Intersect_count = 0;
   const moving_sec = performance.now() - last_time;
   RunningSpeed_pixelPerMs = RunningSpeed / (3600000 / moving_sec) / MeterPerPixel; //処理速度に合わせて調整する
   last_time = performance.now();
-  const new_player_position_temp = {
+  const planned_position = {
     x: player_position.x + RunningSpeed_pixelPerMs * moving_distance.x,
     y: player_position.y + RunningSpeed_pixelPerMs * moving_distance.y,
   };
-  let collision_detection = {};
-  let count = 0;
-  //この当たり判定処理を関数へ
-  //壁の当たり判定
-  for (let line of test_col_lines) {
-    afterCollision_position = shortest_distance(line, {x: new_player_position_temp.x, y: new_player_position_temp.y}, -0.01, count);
-    if (!isIntersected && afterCollision_position[1] < 0.1) {
-      //初めての衝突かつ、線とのベクトルが0.1未満なら(線と近いなら)
-      collision_detection = collision(line, [{x: player_position.x, y: player_position.y}, {x: new_player_position_temp.x, y: new_player_position_temp.y}]);
-    }
-    if (afterCollision_position[1] < 0.06 && afterCollision_position[2]) { Intersect_count += 1; } //距離が近い壁の個数をカウント
-    if (Intersect_count > 1) { 
-      //近くに壁が2つある場合はすり抜け防止のために移動しない
-      updated_player_position = player_position;
-      break;
-    }
-    if (!isIntersected) {
-      if (collision_detection["isIntersect"]) {
-        updated_player_position = afterCollision_position[0];
-        isIntersected = true;
-      }else {
-        updated_player_position = new_player_position_temp;
-      };
-    }
-    count++;
-  }
 
+  updated_player_position = collision_detection(wall_colision[floor], planned_position)
+
+  let intersecting = false;
   //階段の判定
-  for (let stair_line of stairs["1F_UP"]) {
-    collision_detection = collision(stair_line["line"], [{x: player_position.x, y: player_position.y}, {x: new_player_position_temp.x, y: new_player_position_temp.y}]);
-    if (collision_detection["isIntersect"]) {
+  for (let stair_line of stairs["1"]) {//String(floor)]) { //2Fの階段情報がないため、1Fのみ
+    intersecting = collision(stair_line["line"], [{x: player_position.x, y: player_position.y}, {x: planned_position.x, y: planned_position.y}]);
+    if (intersecting) {
+      floor = stair_line["floor"];
       updated_player_position = stair_line["destination"];
+      // ここに背景を切り替える処理
     }
   }
 
@@ -186,8 +165,36 @@ function movePosition() {
 
 }
 
+function collision_detection(wall, new_position) {
+  let updated_player_position;
+  let line_nearest_point = {};
+  let wasIntersected = false;
+  let intersecting
+  let nearby_count = 0;
+  let count = 0;
+  for (let line of wall) {
+    line_nearest_point = nearest_point(line, {x: new_position.x, y: new_position.y}, -0.01, wall_vectors[String(floor)][count]);
+    if (line_nearest_point[1] < 0.06 && line_nearest_point[2]) { nearby_count++; } //距離が近い壁の個数をカウント
+    if (nearby_count > 1) { return player_position; }
+    if (!wasIntersected) {
+      if (line_nearest_point[1] < 0.1) {
+        //線とのベクトルが0.1未満なら(線と近いなら)
+        intersecting = collision(line, [{x: player_position.x, y: player_position.y}, {x: new_position.x, y: new_position.y}]);
+      }
+      if (intersecting) {
+        updated_player_position = line_nearest_point[0];
+        wasIntersected = true;
+      }else {
+        updated_player_position = new_position;
+      }
+    }
+    count++;
+  }
+  return updated_player_position;
+}
+
 function collision(pos1, pos2) {
-  // 当たり判定
+  // 交点を求める
   //posN = [{x:0, y:0}, {x:0, y:0}] A:pos1[0] B:pos1[1] C:pos2[0] D:pos2[1]
 
   let intersect_pos = { x: 0, y: 0 };
@@ -197,7 +204,7 @@ function collision(pos1, pos2) {
     (pos1[1].x - pos1[0].x) * (pos2[1].y - pos2[0].y) -
     (pos1[1].y - pos1[0].y) * (pos2[1].x - pos2[0].x);
   if (denominator == 0) {
-    return { isIntersect: false, intersect_pos: intersect_pos }; //2線分が平行もしくは重なっている
+    return false; //2線分が平行もしくは重なっている
   }
   r =
     ((pos2[1].y - pos2[0].y) * ACx - (pos2[1].x - pos2[0].x) * ACy) /
@@ -206,24 +213,24 @@ function collision(pos1, pos2) {
     ((pos1[1].y - pos1[0].y) * ACx - (pos1[1].x - pos1[0].x) * ACy) /
     denominator;
   if (r < 0 || r > 1 || s < 0 || s > 1) {
-    return { isIntersect: false, intersect_pos: intersect_pos }; //2線分が交差しない
+    return false; //2線分が交差しない
   }
   intersect_pos = {
     x: pos1[0].x + (pos1[1].x - pos1[0].x) * r,
     y: pos1[0].y + (pos1[1].y - pos1[0].y) * s,
   };
   //const distance = Math.sqrt(Math.pow(intersect_pos.x - pos2[0].x, 2) + Math.pow(intersect_pos.y - pos2[0].y, 2));
-  return { isIntersect: true, intersect_pos: intersect_pos };
+  return true;
 
   //https://www.hiramine.com/programming/graphics/2d_segmentintersection.html
 }
 
-function shortest_distance(line, point, margin, line_index) {
+function nearest_point(line, point, margin, line_vec2) {
   //line = [{x: 0, y: 0}, {x: 10, y: 10}], point = {x: 5, y: 5}
 
   let onLine = false; //最短点が線上にあるかどうか
-  const line_norm_vec2 = line_vectors[line_index][0];
-  line_vec2_mag = line_vectors[line_index][1];
+  const line_norm_vec2 = line_vec2[0];
+  const line_vec2_mag = line_vec2[1];
   const lineToPoint_vec2 = { x: point.x - line[0].x, y: point.y - line[0].y }; //線の始点とpointのベクトル
   const shortest_times =
     line_norm_vec2.x * lineToPoint_vec2.x +
