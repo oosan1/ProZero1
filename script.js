@@ -14,7 +14,7 @@ window.addEventListener("resize", resize);
 let player_position = {x: 5, y: -5};
 let player_position_last = {x: 5, y: -5};
 let moving_distance = {x: 0, y: 0};
-let maps_scale = 15; //マップ表示スケール
+let maps_scale = 15; //マップ表示スケール constでもいい
 let total_moving_distance = 0; //合計移動距離
 const MeterPerPixel = 1; //1ピクセルあたり何メートル
 const RunningSpeed = 25714; //走行速度(m/h)
@@ -33,7 +33,7 @@ for (let line of test_col_lines) {
 }
 
 const stick_bg_size = 100; //バーチャルスティック背景の直径
-const maps_size = { x: 2000, y: 1000 };
+const maps_size = { x: 2000, y: 1000 }; //使ってない
 
 // マップスプライト
 const maps = PIXI.Sprite.from("testmap01.png");
@@ -42,6 +42,7 @@ maps.texture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
 app.stage.addChild(maps);
 
 // バーチャルスティックスプライト
+//これらはclassでもできるかも
 const VS_background_texture = new PIXI.Graphics();
 VS_background_texture.lineStyle(3, 0x00000, 0.5, 1);
 VS_background_texture.beginFill(0x00000, 0.2, 1);
