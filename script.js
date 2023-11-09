@@ -38,10 +38,12 @@ const stick_bg_size = 100; //バーチャルスティック背景の直径
 //const maps_size = { x: 2000, y: 1000 }; //使ってない
 
 // マップスプライト
-//ここにすべての階のテクスチャを読み込む処理
-const maps = PIXI.Sprite.from("testmap01.png");
-
-
+const maps_texture = {};
+for (let i = 1; i < 3; i++) {
+  maps_texture[String(i)] = PIXI.Texture.from(`maps/${i}.png`);
+}
+const maps = new PIXI.Sprite();
+maps.texture = maps_texture[floor];
 maps.texture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
 app.stage.addChild(maps);
 
@@ -146,12 +148,13 @@ function movePosition() {
 
   let intersecting = false;
   //階段の判定
-  for (let stair_line of stairs["1"]) {//String(floor)]) { //2Fの階段情報がないため、1Fのみ
+  for (let stair_line of stairs[String(floor)]) {
     intersecting = collision(stair_line["line"], [{x: player_position.x, y: player_position.y}, {x: planned_position.x, y: planned_position.y}]);
     if (intersecting) {
       floor = stair_line["floor"];
       updated_player_position = stair_line["destination"];
-      // ここに背景を切り替える処理
+      maps.texture = maps_texture[floor];
+      maps.texture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
     }
   }
 
