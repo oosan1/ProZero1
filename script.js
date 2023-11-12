@@ -11,6 +11,8 @@ document.body.appendChild(app.view);
 window.addEventListener("resize", resize);
 
 // 変数の初期化
+const first_player_position = {x: 5, y: -5};
+const first_player_position_radius = 3;
 let player_position = {x: 5, y: -5};
 let player_position_last = {x: 5, y: -5};
 let floor = "1";
@@ -22,6 +24,10 @@ const RunningSpeed = 25714; //走行速度(m/h)
 let RunningSpeed_pixelPerMs = RunningSpeed / (3600000 / 5) / MeterPerPixel; //(pixel/ms)
 let window_size = { x: window.innerWidth, y: window.innerHeight };
 let last_time = 0;
+let AED_Flag = false;
+let end_Flag = false;
+let AED_get_time = 0;
+let all_time = 0;
 
 // 当たり判定壁をwall.jsからロード
 //壁のベクトル等を事前計算
@@ -102,6 +108,7 @@ app.stage.eventMode = "static";
 app.stage.hitArea = app.screen;
 app.stage.on("pointerup", onDragEnd);
 app.stage.on("pointerupoutside", onDragEnd);
+const game_start_time = Date.now();
 
 function onStickDragStart() {
   // バーチャルスティック管理
@@ -144,10 +151,11 @@ function movePosition() {
     y: player_position.y + RunningSpeed_pixelPerMs * moving_distance.y,
   };
 
+  //当たり判定
   updated_player_position = collision_detection(wall_colision[floor], planned_position)
 
-  let intersecting = false;
   //階段の判定
+  let intersecting = false;
   for (let stair_line of stairs[String(floor)]) {
     intersecting = collision(stair_line["line"], [{x: player_position.x, y: player_position.y}, {x: planned_position.x, y: planned_position.y}]);
     if (intersecting) {
@@ -155,6 +163,26 @@ function movePosition() {
       updated_player_position = stair_line["destination"];
       maps.texture = maps_texture[floor];
       maps.texture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
+    }
+  }
+
+  //AEDの判定
+  if (!end_Flag) {
+    if (AED_Flag) {
+      if (first_player_position_radius**2 > (first_player_position.x - updated_player_position.x)**2 + (first_player_position.y - updated_player_position.y)**2) {
+        end_Flag = true;
+        all_time = Date.now() - game_start_time;
+      }
+    } else {
+      for (let AED of AED_position["1"]) {
+        if (!AED) {
+          break
+        }
+        if (AED["radius"]**2 > (AED["point"].x - updated_player_position.x)**2 + (AED["point"].y - updated_player_position.y)**2) {
+          AED_Flag = true;
+          AED_get_time = Date.now() - game_start_time;
+        }
+      }
     }
   }
 
@@ -274,7 +302,7 @@ function animTick() {
   //player_position_last = {x: player_position.x, y: player_position.y};
   document.getElementById(
     "overlay",
-  ).textContent = `合計移動距離: ${total_moving_distance}m`;
+  ).innerText  = `合計移動距離: ${total_moving_distance}m\nAEDフラグ: ${AED_Flag}\n終了フラグ: ${end_Flag}\nAED取得タイム:${AED_get_time / 1000}s\n全体タイム:${all_time / 1000}s`;
 }
 
 function resize() {
