@@ -166,7 +166,6 @@ function movePosition() {
     }
   }
 
-  //AEDの判定
   if (!end_Flag) {
     if (AED_Flag) {
       if (first_player_position_radius**2 > (first_player_position.x - updated_player_position.x)**2 + (first_player_position.y - updated_player_position.y)**2) {
