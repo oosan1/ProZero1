@@ -11,6 +11,21 @@ document.body.appendChild(app.view);
 window.addEventListener("resize", resize);
 
 // 変数の初期化
+const first_player_position = {x: 2400, y: -2500};
+const first_player_position_radius = 3;
+let player_position = {x: 2400, y: -2500};
+let player_position_last = {x: 5, y: -5};
+let floor = "1";
+let moving_distance = {x: 0, y: 0};
+let maps_scale = 3; //マップ表示スケール constでもいい
+let total_moving_distance = 0; //合計移動距離
+const MeterPerPixel = 0.032153846; //1ピクセルあたり何メートル
+const RunningSpeed = 15000; //走行速度(m/h)
+const wall_margin = 5; //壁のすり抜け防止のために伸ばす量
+const wall_detection_margin = 10; //軽量化のために計算を無視する壁までの距離
+const wall_corner_margin = 1; //壁の角に丸いすり抜け防止当たり判定
+
+/*
 const first_player_position = {x: 5, y: -5};
 const first_player_position_radius = 3;
 let player_position = {x: 5, y: -5};
@@ -20,7 +35,9 @@ let moving_distance = {x: 0, y: 0};
 let maps_scale = 15; //マップ表示スケール constでもいい
 let total_moving_distance = 0; //合計移動距離
 const MeterPerPixel = 1; //1ピクセルあたり何メートル
-const RunningSpeed = 25714; //走行速度(m/h)
+const RunningSpeed = 30000; //走行速度(m/h)
+const wall_margin = 3; //壁の角のすり抜けを防止するためのマージン
+*/
 let RunningSpeed_pixelPerMs = RunningSpeed / (3600000 / 5) / MeterPerPixel; //(pixel/ms)
 let window_size = { x: window.innerWidth, y: window.innerHeight };
 let last_time = 0;
@@ -39,6 +56,8 @@ for (let [key, value] of Object.entries(wall_colision)) {
   }
   wall_vectors[key] = wall_vectors_list;
 }
+
+console.log(wall_colision[floor])
 
 const stick_bg_size = 100; //バーチャルスティック背景の直径
 //const maps_size = { x: 2000, y: 1000 }; //使ってない
@@ -186,8 +205,8 @@ function movePosition() {
   }
 
   total_moving_distance += Math.sqrt(
-    Math.pow(updated_player_position.x - player_position.x, 2) +
-      Math.pow(updated_player_position.y - player_position.y, 2),
+    Math.pow((updated_player_position.x - player_position.x)*MeterPerPixel, 2) +
+      Math.pow((updated_player_position.y - player_position.y)*MeterPerPixel, 2),
   );
 
   player_position.x = updated_player_position.x;
@@ -204,11 +223,11 @@ function collision_detection(wall, new_position) {
   let count = 0;
   for (let line of wall) {
     line_nearest_point = nearest_point(line, {x: new_position.x, y: new_position.y}, -0.01, wall_vectors[String(floor)][count]);
-    if (line_nearest_point[1] < 0.06 && line_nearest_point[2]) { nearby_count++; } //距離が近い壁の個数をカウント
+    if (line_nearest_point[1] < wall_corner_margin && line_nearest_point[2]) { nearby_count++; } //距離が近い壁の個数をカウント
     if (nearby_count > 1) { return player_position; }
     if (!wasIntersected) {
-      if (line_nearest_point[1] < 0.1) {
-        //線とのベクトルが0.1未満なら(線と近いなら)
+      if (line_nearest_point[1] < wall_detection_margin) {
+        //線とのベクトルがn未満なら(線と近いなら)
         intersecting = collision(line, [{x: player_position.x, y: player_position.y}, {x: new_position.x, y: new_position.y}]);
       }
       if (intersecting) {
@@ -283,7 +302,7 @@ function nearest_point(line, point, margin, line_vec2) {
     x: shortest_point.x + pointToRes_vec2.x * margin_times,
     y: shortest_point.y + pointToRes_vec2.y * margin_times,
   };
-  if (shortest_times > 0 && line_vec2_mag > shortest_times) {
+  if (shortest_times > -wall_margin && line_vec2_mag + wall_margin > shortest_times) {
     onLine = true;
   }
   return [res_point, pointToRes_vec2_mag, onLine];
