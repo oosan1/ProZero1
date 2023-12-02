@@ -11,11 +11,11 @@ document.body.appendChild(app.view);
 window.addEventListener("resize", resize);
 
 // 変数の初期化
-const first_player_position = {x: 2400, y: -2500};
+const first_player_position = {x: 2200, y: -2500};
 const first_player_position_radius = 3;
-let player_position = {x: 2400, y: -2500};
+let player_position = {x: 2200, y: -2500};
 let player_position_last = {x: 5, y: -5};
-let floor = "1";
+let floor = "2";
 let moving_distance = {x: 0, y: 0};
 let maps_scale = 3; //マップ表示スケール constでもいい
 let total_moving_distance = 0; //合計移動距離
@@ -51,13 +51,15 @@ let all_time = 0;
 let wall_vectors = {};
 let wall_vectors_list = [];
 for (let [key, value] of Object.entries(wall_colision)) {
+  console.log(value)
   for (let line of value) {
     wall_vectors_list.push(vecNormalize(line));
   }
   wall_vectors[key] = wall_vectors_list;
+  wall_vectors_list = [];
 }
 
-console.log(wall_colision[floor])
+console.log(wall_vectors)
 
 const stick_bg_size = 100; //バーチャルスティック背景の直径
 //const maps_size = { x: 2000, y: 1000 }; //使ってない
