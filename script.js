@@ -11,33 +11,27 @@ document.body.appendChild(app.view);
 window.addEventListener("resize", resize);
 
 // 変数の初期化
-const first_player_position = {x: 2200, y: -2500};
-const first_player_position_radius = 3;
-let player_position = {x: 2200, y: -2500};
+
+let floor = "1";//String(Math.floor( Math.random() * 2 ) + 1);
+const random_player_pos = Math.floor( Math.random() * player_position_candidate[floor].length );
+const first_player_position = player_position_candidate[floor][random_player_pos];
+let player_position = {
+  x: player_position_candidate[floor][random_player_pos].x,
+  y: player_position_candidate[floor][random_player_pos].y
+}
+
+const first_player_position_radius = 32;
 let player_position_last = {x: 5, y: -5};
-let floor = "2";
 let moving_distance = {x: 0, y: 0};
 let maps_scale = 3; //マップ表示スケール constでもいい
 let total_moving_distance = 0; //合計移動距離
 const MeterPerPixel = 0.032153846; //1ピクセルあたり何メートル
-const RunningSpeed = 15000; //走行速度(m/h)
+const RunningSpeed = 20000; //走行速度(m/h)
 const wall_margin = 5; //壁のすり抜け防止のために伸ばす量
 const wall_detection_margin = 10; //軽量化のために計算を無視する壁までの距離
 const wall_corner_margin = 1; //壁の角に丸いすり抜け防止当たり判定
+let isGameStart = false;
 
-/*
-const first_player_position = {x: 5, y: -5};
-const first_player_position_radius = 3;
-let player_position = {x: 5, y: -5};
-let player_position_last = {x: 5, y: -5};
-let floor = "1";
-let moving_distance = {x: 0, y: 0};
-let maps_scale = 15; //マップ表示スケール constでもいい
-let total_moving_distance = 0; //合計移動距離
-const MeterPerPixel = 1; //1ピクセルあたり何メートル
-const RunningSpeed = 30000; //走行速度(m/h)
-const wall_margin = 3; //壁の角のすり抜けを防止するためのマージン
-*/
 let RunningSpeed_pixelPerMs = RunningSpeed / (3600000 / 5) / MeterPerPixel; //(pixel/ms)
 let window_size = { x: window.innerWidth, y: window.innerHeight };
 let last_time = 0;
@@ -51,7 +45,6 @@ let all_time = 0;
 let wall_vectors = {};
 let wall_vectors_list = [];
 for (let [key, value] of Object.entries(wall_colision)) {
-  console.log(value)
   for (let line of value) {
     wall_vectors_list.push(vecNormalize(line));
   }
@@ -59,10 +52,8 @@ for (let [key, value] of Object.entries(wall_colision)) {
   wall_vectors_list = [];
 }
 
-console.log(wall_vectors)
 
 const stick_bg_size = 100; //バーチャルスティック背景の直径
-//const maps_size = { x: 2000, y: 1000 }; //使ってない
 
 // マップスプライト
 const maps_texture = {};
@@ -111,16 +102,26 @@ player_texture.endFill();
 const player = PIXI.Sprite.from(app.renderer.generateTexture(player_texture));
 player.anchor = { x: 0.5, y: 0.5 };
 
-// テスト表示スプライト
-const test_texture = new PIXI.Graphics();
-test_texture.lineStyle(2, 0x000000, 1, 1);
-test_texture.beginFill(0xfff000, 1, 1);
-test_texture.drawCircle(0, 0, 5);
-test_texture.endFill();
-const test_sp = PIXI.Sprite.from(app.renderer.generateTexture(test_texture));
-test_sp.anchor = { x: 0.5, y: 0.5 };
+// AEDスプライト
+let AED_sprites = {};
+for (let [key, value] of Object.entries(AED_position)) {
+  let AED_list = [];
+  for (let aed of value) {
+    let AED_sprite = PIXI.Sprite.from("maps/AED.png");
+    AED_sprite.texture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
+    AED_sprite.anchor = { x: 0.5, y: 0.5 };
+    app.stage.addChild(AED_sprite);
+    AED_list.push(AED_sprite);
+  }
+  AED_sprites[key] = AED_list;
+}
 
-app.stage.addChild(VS_background, VS_stick, player, test_sp);
+//スタートスプライト
+const start_sprite = PIXI.Sprite.from("maps/start.png")
+start_sprite.texture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
+start_sprite.anchor = { x: 0.5, y: 0.5 };
+
+app.stage.addChild(VS_background, VS_stick, player, start_sprite);
 
 resize();
 setInterval(movePosition, 5);
@@ -129,7 +130,7 @@ app.stage.eventMode = "static";
 app.stage.hitArea = app.screen;
 app.stage.on("pointerup", onDragEnd);
 app.stage.on("pointerupoutside", onDragEnd);
-const game_start_time = Date.now();
+let game_start_time = 0;
 
 function onStickDragStart() {
   // バーチャルスティック管理
@@ -137,6 +138,11 @@ function onStickDragStart() {
 }
 
 function onStickDragMove(event) {
+  if (!isGameStart) {
+    isGameStart = true;
+    game_start_time = Date.now();
+
+  }
   const x1 = event.global.x,
     y1 = event.global.y,
     x2 = window_size.x - 200,
@@ -194,13 +200,27 @@ function movePosition() {
         all_time = Date.now() - game_start_time;
       }
     } else {
-      for (let AED of AED_position["1"]) {
-        if (!AED) {
-          break
-        }
-        if (AED["radius"]**2 > (AED["point"].x - updated_player_position.x)**2 + (AED["point"].y - updated_player_position.y)**2) {
-          AED_Flag = true;
-          AED_get_time = Date.now() - game_start_time;
+      for (let AEDs of AED_position[String(floor)]) {
+        let AED = AEDs
+        if (AED_position[String(floor)].length == 1) {
+          if (!AED) {
+            break;
+          }
+          if (AED["radius"]**2 > (AED["point"].x - updated_player_position.x)**2 + (AED["point"].y - updated_player_position.y)**2) {
+            AED_Flag = true;
+            AED_get_time = Date.now() - game_start_time;
+          }
+        } else {
+          // 同じ階にAEDが複数個ある場合は反復
+          for (let AED of AEDs) {
+            if (!AED) {
+              break;
+            }
+            if (AED["radius"]**2 > (AED["point"].x - updated_player_position.x)**2 + (AED["point"].y - updated_player_position.y)**2) {
+              AED_Flag = true;
+              AED_get_time = Date.now() - game_start_time;
+            }
+          }
         }
       }
     }
@@ -312,14 +332,38 @@ function nearest_point(line, point, margin, line_vec2) {
 }
 
 function animTick() {
-  //アニメーション処理
+  //マップ移動
   maps.position = {
     x: -player_position.x * maps_scale + window_size.x / 2,
     y: player_position.y * maps_scale + window_size.y / 2,
   };
   maps.scale = { x: maps_scale, y: maps_scale };
-  //total_moving_distance += Math.sqrt(Math.pow(player_position.x - player_position_last.x, 2) + Math.pow(player_position.y - player_position_last.y, 2));
-  //player_position_last = {x: player_position.x, y: player_position.y};
+
+  //AED移動
+  for (let [key, value] of Object.entries(AED_sprites)) {
+    if (key != String(floor)) {
+      for (let AED_sprite of value) {
+        AED_sprite.alpha = 0;
+      }
+      continue;
+    }
+    for (let i = 0; i < value.length; i++) {
+      value[i].alpha = 1;
+      value[i].position = {
+        x: -player_position.x * maps_scale + window_size.x / 2 + AED_position[key][i]["point"].x * maps_scale,
+        y: player_position.y * maps_scale + window_size.y / 2 + -AED_position[key][i]["point"].y * maps_scale
+      };
+      value[i].scale = { x: maps_scale, y: maps_scale };
+    }
+  }
+
+  //スタート地点移動
+  start_sprite.position = {
+    x: -player_position.x * maps_scale + window_size.x / 2 + first_player_position.x * maps_scale,
+    y: player_position.y * maps_scale + window_size.y / 2 + -first_player_position.y * maps_scale,
+  };
+  start_sprite.scale = { x: maps_scale, y: maps_scale };
+
   document.getElementById(
     "overlay",
   ).innerText  = `合計移動距離: ${total_moving_distance}m\nAEDフラグ: ${AED_Flag}\n終了フラグ: ${end_Flag}\nAED取得タイム:${AED_get_time / 1000}s\n全体タイム:${all_time / 1000}s`;
