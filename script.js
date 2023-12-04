@@ -405,11 +405,13 @@ function animTick() {
     if (key != String(floor)) {
       for (let AED_sprite of value) {
         AED_sprite.alpha = 0;
+        start_sprite.alpha = 0;
       }
       continue;
     }
     for (let i = 0; i < value.length; i++) {
       value[i].alpha = 1;
+      start_sprite.alpha = 1;
       value[i].position = {
         x: -player_position.x * maps_scale + window_size.x / 2 + AED_position[key][i]["point"].x * maps_scale,
         y: player_position.y * maps_scale + window_size.y / 2 + -AED_position[key][i]["point"].y * maps_scale
