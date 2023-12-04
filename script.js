@@ -27,7 +27,7 @@ window.addEventListener("resize", resize);
 
 // 変数の初期化
 
-const first_floor = "1";//String(Math.floor( Math.random() * 2 ) + 1);
+const first_floor = String(Math.floor( Math.random() * 1 ) + 1);
 let floor = first_floor;
 const random_player_pos = Math.floor( Math.random() * player_position_candidate[floor].length );
 const first_player_position = player_position_candidate[floor][random_player_pos];
@@ -405,13 +405,11 @@ function animTick() {
     if (key != String(floor)) {
       for (let AED_sprite of value) {
         AED_sprite.alpha = 0;
-        start_sprite.alpha = 0;
       }
       continue;
     }
     for (let i = 0; i < value.length; i++) {
       value[i].alpha = 1;
-      start_sprite.alpha = 1;
       value[i].position = {
         x: -player_position.x * maps_scale + window_size.x / 2 + AED_position[key][i]["point"].x * maps_scale,
         y: player_position.y * maps_scale + window_size.y / 2 + -AED_position[key][i]["point"].y * maps_scale
@@ -421,6 +419,11 @@ function animTick() {
   }
 
   //スタート地点移動
+  if (first_floor != String(floor)) {
+    start_sprite.alpha = 0;
+  } else {
+    start_sprite.alpha = 1;
+  }
   start_sprite.position = {
     x: -player_position.x * maps_scale + window_size.x / 2 + first_player_position.x * maps_scale,
     y: player_position.y * maps_scale + window_size.y / 2 + -first_player_position.y * maps_scale,
