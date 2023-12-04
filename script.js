@@ -27,7 +27,7 @@ window.addEventListener("resize", resize);
 
 // 変数の初期化
 
-const first_floor = String(Math.floor( Math.random() * 1 ) + 1);
+const first_floor = String(Math.floor( Math.random() * 2 ) + 1);
 let floor = first_floor;
 const random_player_pos = Math.floor( Math.random() * player_position_candidate[floor].length );
 const first_player_position = player_position_candidate[floor][random_player_pos];
