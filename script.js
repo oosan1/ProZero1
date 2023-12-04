@@ -234,14 +234,10 @@ function movePosition() {
           const CategoryCol = collection(db, "score");
           const Snapshot = await getDocs(CategoryCol);
           const score_db = Snapshot.docs.map(doc => doc.data());
-          console.log(score_db)
-          let All_db = 0;
-          let Avg_db = 0;
-          let Avg2_db = 0;
-          
-          All_db = score_db[0]["All"];
-          Avg_db = score_db[0]["Avg"];
-          Avg2_db = score_db[0]["Avg2"];
+
+          let All_db = score_db[0]["All"];
+          let Avg_db = score_db[0]["Avg"];
+          let Avg2_db = score_db[0]["Avg2"];
 
           const survival_rate = 100 - all_time / 1000 / 60 * 10;
           const Sx = Math.sqrt(Avg2_db-Avg_db**2);
