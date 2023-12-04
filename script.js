@@ -27,9 +27,16 @@ window.addEventListener("resize", resize);
 
 // 変数の初期化
 
-const first_floor = String(Math.floor( Math.random() * 2 ) + 1);
+
+let first_floor
+if (Math.floor( Math.random() * 10 ) == 0) {
+  first_floor = "4";
+}else {
+  first_floor = String(Math.floor( Math.random() * 4 ) + 1);
+}
+
 let floor = first_floor;
-const random_player_pos = Math.floor( Math.random() * player_position_candidate[floor].length );
+const random_player_pos = Math.floor( Math.random() * player_position_candidate[floor].length);
 const first_player_position = player_position_candidate[floor][random_player_pos];
 let player_position = {
   x: player_position_candidate[floor][random_player_pos].x,
@@ -42,10 +49,10 @@ let moving_distance = {x: 0, y: 0};
 let maps_scale = 3; //マップ表示スケール constでもいい
 let total_moving_distance = 0; //合計移動距離
 const MeterPerPixel = 0.032153846; //1ピクセルあたり何メートル
-const RunningSpeed = 20000; //走行速度(m/h)
+const RunningSpeed =10000; //走行速度(m/h)
 const wall_margin = 5; //壁のすり抜け防止のために伸ばす量
 const wall_detection_margin = 10; //軽量化のために計算を無視する壁までの距離
-const wall_corner_margin = 1; //壁の角に丸いすり抜け防止当たり判定
+const wall_corner_margin = 2; //壁の角に丸いすり抜け防止当たり判定
 let isGameStart = false;
 const AED_Getting_time = 3; //AEDを取り出す際にかかる時間
 const AED_Using_time = 60; //AED到着から使用までの時間
@@ -78,12 +85,13 @@ const stick_bg_size = 100; //バーチャルスティック背景の直径
 
 // マップスプライト
 const maps_texture = {};
-for (let i = 1; i < 3; i++) {
+for (let i = 1; i < 5; i++) {
+  console.log(i)
   maps_texture[String(i)] = PIXI.Texture.from(`maps/${i}.png`);
 }
 const maps = new PIXI.Sprite();
 maps.texture = maps_texture[floor];
-maps.texture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
+//maps.texture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
 app.stage.addChild(maps);
 
 // バーチャルスティックスプライト
@@ -222,38 +230,71 @@ function movePosition() {
         end_Flag = true;
         moving_time = Date.now() - game_start_time;
         const all_time = moving_time + AED_Getting_time*1000 + AED_Using_time*1000;
+        const getdata = async function get(){
+          const CategoryCol = collection(db, "score");
+          const Snapshot = await getDocs(CategoryCol);
+          const score_db = Snapshot.docs.map(doc => doc.data());
+          console.log(score_db)
+          let All_db = score_db[0]["All"];
+          let Avg_db = score_db[0]["Avg"];
+          let Avg2_db = score_db[0]["Avg2"];
+          const survival_rate = 100 - all_time / 1000 / 60 * 10
+          const Sx = Math.sqrt(Avg2_db-Avg_db**2);
+          const Deviation = (survival_rate-Avg_db)/Sx*10+50;
 
-        //終了画面を表示
-        const EndPage = document.getElementById("end_overlay");
-        const EndTime = document.getElementById("end_time_text");
-        const EndTime2 = document.getElementById("end_time2_text");
-        const EndTime3 = document.getElementById("end_time3_text");
-        const EndPer = document.getElementById("end_per_text");
-        EndPage.style.display = "block";
-        EndPer.innerText = `救命率: ${Math.floor(100 - all_time / 1000 / 60 * 10)}%`
-        EndTime.innerText = `全体時間: ${Math.floor(all_time / 1000 / 60)}m${Math.floor(all_time / 1000 % 60)}s`
-        EndTime2.innerText = `AED取得までの時間: ${Math.floor(AED_get_time / 1000 / 60)}m${Math.floor(AED_get_time / 1000 % 60)}s`
-        EndTime3.innerText = `AED取得から戻るまでの時間: ${Math.floor((moving_time - AED_get_time) / 1000 / 60)}m${Math.floor((moving_time -AED_get_time) / 1000 % 60)}s`
-        //https://www.youtube.com/watch?v=VfCdHO5Y7jw
+          if (survival_rate > 30) {
+            if (All_db == 0) {
+              Avg_db = survival_rate;
+              Avg2_db = survival_rate**2;
+              All_db = 1;
+            }else {
+              Avg_db = (Avg_db*All_db + survival_rate)/(All_db + 1);
+              Avg2_db = (Avg2_db*All_db + survival_rate**2)/(All_db + 1);
+              All_db = All_db + 1;
+            }
+            updateDoc(doc(db, "score", "value"), {
+              All: All_db,
+              Avg: Avg_db,
+              Avg2: Avg2_db
+            })
+          }
 
-        //プレイ回数をCookieから算出
-        const play_count = (document.cookie.split("1") || []).length;
-        document.cookie = `count=${"1".repeat(play_count)}`;
-        //データをデータベースに追加
-        addDoc(collection(db, "users"), {
-          startPoint: first_player_position,
-          startFloor: first_floor,
-          AEDPoint: AED_get_pos,
-          AEDFloor: AED_get_floor,
-          all_moving_dis: total_moving_distance,
-          AED_get_time: AED_get_time,
-          moving_time: moving_time,
-          all_time: all_time,
-          survival_rate: 100 - all_time / 1000 / 60 * 10,
-          moving_speed: RunningSpeed,
-          play_count: Number(play_count),
-          timestamp: serverTimestamp()
-        })
+          //終了画面を表示
+          const EndPage = document.getElementById("end_overlay");
+          const EndTime = document.getElementById("end_time_text");
+          const EndTime2 = document.getElementById("end_time2_text");
+          const EndTime3 = document.getElementById("end_time3_text");
+          const EndTime4 =  document.getElementById("end_time4_text");
+          const EndPer = document.getElementById("end_per_text");
+          EndPage.style.display = "block";
+          EndPer.innerText = `救命率: ${Math.floor(survival_rate)}%`
+          EndTime.innerText = `全体時間: ${Math.floor(all_time / 1000 / 60)}m${Math.floor(all_time / 1000 % 60)}s`
+          EndTime2.innerText = `AED取得までの時間: ${Math.floor(AED_get_time / 1000 / 60)}m${Math.floor(AED_get_time / 1000 % 60)}s`
+          EndTime3.innerText = `AED取得から戻るまでの時間: ${Math.floor((moving_time - AED_get_time) / 1000 / 60)}m${Math.floor((moving_time -AED_get_time) / 1000 % 60)}s`
+          EndTime4.innerText = `救命率偏差値: ${Math.floor(Deviation)}`
+          //https://www.youtube.com/watch?v=VfCdHO5Y7jw
+
+          //プレイ回数をCookieから算出
+          const play_count = (document.cookie.split("1") || []).length;
+          document.cookie = `count=${"1".repeat(play_count)}`;
+          //データをデータベースに追加
+          addDoc(collection(db, "users"), {
+            startPoint: first_player_position,
+            startFloor: first_floor,
+            AEDPoint: AED_get_pos,
+            AEDFloor: AED_get_floor,
+            all_moving_dis: total_moving_distance,
+            AED_get_time: AED_get_time,
+            moving_time: moving_time,
+            all_time: all_time,
+            survival_rate: 100 - all_time / 1000 / 60 * 10,
+            moving_speed: RunningSpeed,
+            play_count: Number(play_count),
+            deviation: Deviation,
+            timestamp: serverTimestamp()
+          })
+        }
+        getdata();
       }
     } else {
       for (let AEDs of AED_position[String(floor)]) {

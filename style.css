@@ -77,6 +77,14 @@ body {
     justify-content: center;
     margin: 1% auto auto auto;
 }
+#end_time4_text {
+    font-size: 40px;
+    font-weight: bold;
+    color: black;
+    display: flex;
+    justify-content: center;
+    margin: 2% auto auto auto;
+}
 
 #end_info_text {
     font-size: 16px;
