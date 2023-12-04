@@ -254,7 +254,7 @@ function movePosition() {
 
           if (survival_rate > 30) {
             Avg_db = (Avg_db*(All_db - 1) + survival_rate)/(All_db);
-            Avg2_db = (Avg2_db*(All_db - 1) + survival_rate**2)/(All_db_);
+            Avg2_db = (Avg2_db*(All_db - 1) + survival_rate**2)/(All_db);
             updateDoc(doc(db, "score", "value"), {
               All: All_db,
               Avg: Avg_db,
