@@ -29,7 +29,7 @@ window.addEventListener("resize", resize);
 
 
 let first_floor
-if (Math.floor( Math.random() * 10 ) == 0) {
+if (Math.floor( Math.random() * 30 ) == 0) {
   first_floor = "4";
 }else {
   first_floor = String(Math.floor( Math.random() * 4 ) + 1);
