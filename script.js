@@ -49,7 +49,7 @@ let moving_distance = {x: 0, y: 0};
 let maps_scale = 3; //マップ表示スケール constでもいい
 let total_moving_distance = 0; //合計移動距離
 const MeterPerPixel = 0.032153846; //1ピクセルあたり何メートル
-const RunningSpeed =10000; //走行速度(m/h)
+const RunningSpeed =30000; //走行速度(m/h)
 const wall_margin = 5; //壁のすり抜け防止のために伸ばす量
 const wall_detection_margin = 10; //軽量化のために計算を無視する壁までの距離
 const wall_corner_margin = 2; //壁の角に丸いすり抜け防止当たり判定
@@ -238,17 +238,12 @@ function movePosition() {
           let All_db = 0;
           let Avg_db = 0;
           let Avg2_db = 0;
-          if (score_db.length == 0) {
-            Avg_db = survival_rate;
-            Avg2_db = survival_rate**2;
-            All_db = 0;
-          }else {
-            All_db = score_db[0]["All"];
-            Avg_db = score_db[0]["Avg"];
-            Avg2_db = score_db[0]["Avg2"];
-          }
+          
+          All_db = score_db[0]["All"];
+          Avg_db = score_db[0]["Avg"];
+          Avg2_db = score_db[0]["Avg2"];
 
-          const survival_rate = 100 - all_time / 1000 / 60 * 10
+          const survival_rate = 100 - all_time / 1000 / 60 * 10;
           const Sx = Math.sqrt(Avg2_db-Avg_db**2);
           const Deviation = (survival_rate-Avg_db)/Sx*10+50;
 
