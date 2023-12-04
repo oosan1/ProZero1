@@ -91,7 +91,7 @@ for (let i = 1; i < 5; i++) {
 }
 const maps = new PIXI.Sprite();
 maps.texture = maps_texture[floor];
-//maps.texture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
+maps.texture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
 app.stage.addChild(maps);
 
 // バーチャルスティックスプライト
