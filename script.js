@@ -284,11 +284,13 @@ function movePosition() {
       }
     }
   }
-
-  total_moving_distance += Math.sqrt(
-    Math.pow((updated_player_position.x - player_position.x)*MeterPerPixel, 2) +
+  if (!intersecting) {
+    // 階段で移動した場合は座標がずれるため、total_moving_distanceを変化させない
+    total_moving_distance += Math.sqrt(
+      Math.pow((updated_player_position.x - player_position.x)*MeterPerPixel, 2) +
       Math.pow((updated_player_position.y - player_position.y)*MeterPerPixel, 2),
-  );
+    );
+  }
 
   player_position.x = updated_player_position.x;
   player_position.y = updated_player_position.y;
