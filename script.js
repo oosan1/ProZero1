@@ -29,8 +29,6 @@ window.addEventListener("resize", resize);
 
 const first_floor = String(Math.floor( Math.random() * 1 ) + 1);
 let floor = first_floor;
-console.log(Math.floor( Math.random() * player_position_candidate[floor].length ))
-console.log(first_floor)
 const random_player_pos = Math.floor( Math.random() * player_position_candidate[floor].length );
 const first_player_position = player_position_candidate[floor][random_player_pos];
 let player_position = {
@@ -164,6 +162,8 @@ function onStickDragMove(event) {
   if (!isGameStart) {
     isGameStart = true;
     game_start_time = Date.now();
+    console.log(Math.floor( Math.random() * player_position_candidate[floor].length ))
+    console.log(first_floor)
 
   }
   const x1 = event.global.x,
