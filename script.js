@@ -235,23 +235,27 @@ function movePosition() {
           const Snapshot = await getDocs(CategoryCol);
           const score_db = Snapshot.docs.map(doc => doc.data());
           console.log(score_db)
-          let All_db = score_db[0]["All"];
-          let Avg_db = score_db[0]["Avg"];
-          let Avg2_db = score_db[0]["Avg2"];
+          let All_db = 0;
+          let Avg_db = 0;
+          let Avg2_db = 0;
+          if (score_db.length == 0) {
+            Avg_db = survival_rate;
+            Avg2_db = survival_rate**2;
+            All_db = 0;
+          }else {
+            All_db = score_db[0]["All"];
+            Avg_db = score_db[0]["Avg"];
+            Avg2_db = score_db[0]["Avg2"];
+          }
+
           const survival_rate = 100 - all_time / 1000 / 60 * 10
           const Sx = Math.sqrt(Avg2_db-Avg_db**2);
           const Deviation = (survival_rate-Avg_db)/Sx*10+50;
 
           if (survival_rate > 30) {
-            if (All_db == 0) {
-              Avg_db = survival_rate;
-              Avg2_db = survival_rate**2;
-              All_db = 1;
-            }else {
-              Avg_db = (Avg_db*All_db + survival_rate)/(All_db + 1);
-              Avg2_db = (Avg2_db*All_db + survival_rate**2)/(All_db + 1);
-              All_db = All_db + 1;
-            }
+            Avg_db = (Avg_db*All_db + survival_rate)/(All_db + 1);
+            Avg2_db = (Avg2_db*All_db + survival_rate**2)/(All_db + 1);
+            All_db = All_db + 1;
             updateDoc(doc(db, "score", "value"), {
               All: All_db,
               Avg: Avg_db,
