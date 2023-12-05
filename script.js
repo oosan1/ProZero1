@@ -251,7 +251,7 @@ function movePosition() {
 
           let Sx = 0;
           let Deviation = 0;
-          if (score_db[0]["All"] - 1 < 1)   
+          if (score_db[0]["All"] - 1 < 1) {
             Deviation = 50;
           }else {
             Sx = Math.sqrt(Avg2_db-Avg_db**2);  
