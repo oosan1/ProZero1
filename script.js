@@ -226,7 +226,7 @@ function movePosition() {
 
   if (!end_Flag) {
     if (AED_Flag) {
-      if (first_player_position_radius**2 > (first_player_position.x - updated_player_position.x)**2 + (first_player_position.y - updated_player_position.y)**2 && first_floor == String(floor) {
+      if (first_player_position_radius**2 > (first_player_position.x - updated_player_position.x)**2 + (first_player_position.y - updated_player_position.y)**2 && first_floor == String(floor)) {
         end_Flag = true;
         moving_time = Date.now() - game_start_time;
         const all_time = moving_time + AED_Getting_time*1000 + AED_Using_time*1000;
