@@ -13,27 +13,21 @@
     <script src="script.js", type="module" defer></script>
     <div id="StartOverlay">
         <div id="agree">
+            <div id="title">
+                <h1>データ収集に関して</h1>
+            </div>
             <div class="box">
-                <p>
-                    データ収集に関して<br>
-                    　1. このサイトでは以下のようなデータを個人の特定されない方法で収集します。<br>
-                    　　・開始座標及びフロア<br>
-                    　　・取得したAED座標及びフロア<br>
-                    　　・トータル移動距離<br>
-                    　　・AED取得までの時間<br>
-                    　　・移動時間<br>
-                    　　・トータル時間<br>
-                    　　・救命率<br>
-                    　　・プレイ回数<br>
-                    　　・記録時の日時<br>
-                    <br>
-                    Cookieの使用に関して<br>
-                    　1. このサイトではCookieを使用します。<br>
-                    <br>
-                    注意事項<br>
-                    　1. 実際に緊急事態が発生した場合はその状況に応じて行動するようにしてください。<br>
-                    　2. 救命率はあくまで時間をもとに算出した参考の値です。実際はAED到着までの救命活動の有無などにより変化します。<br>
-                    　3. 経過時間は移動時間+AED取り出し時間(3s固定)+AED使用時間(60s固定)で計算されます。
+                <p id="box_text">
+                    1. このサイトでは以下のようなデータを個人の特定されない方法で収集します。<br>
+                    　・開始座標及びフロア<br>
+                    　・取得したAED座標及びフロア<br>
+                    　・トータル移動距離<br>
+                    　・AED取得までの時間<br>
+                    　・移動時間<br>
+                    　・トータル時間<br>
+                    　・救命率<br>
+                    　・プレイ回数<br>
+                    　・記録時の日時
                 </p>
             </div>
             <div id="button">
@@ -41,22 +35,18 @@
             </div>
         </div>
         <div id="rule">
+            <div id="title">
+                <h1>操作方法</h1>
+            </div>
             <div class="box">
-                <h2>ルール説明</h2>
-                <p>
-                    　・校内のランダムな場所から開始されます。<br>
-                    　・最寄りのAEDまで行き、AEDを回収してからスタートした場所まで戻ってください。<br>
-                    　・スタート地点まで戻るとかかった時間をもとに救命率などが表示されます。<br>
-                    　・AEDの場所にはAEDと書かれた赤丸が、スタート地点にはSと書かれた青丸が表示されます。<br>
-                    　・経過時間を計るタイマーはスティックを動かすと同時に開始されます。<br>
-                </p>
-                <h2>操作方法</h2>
-                <p>
+                
+                <h2 id="box_text">移動方法</h2>
+                <p id="box_text">
                     　・操作は画面右下に表示される灰色のバーチャルスティックで行います。<br>
                     　・灰色の丸を上下左右にドラッグすることで中央のプレイヤーが画面上を移動します。
                 </p>
-                <h2>イメージ画像</h2>
-                <img src="https://www.example.com/images/dinosaur.jpg" alt="Dinosaur" />
+                <h2 id="box_text">イメージ画像</h2>
+                <img id="box_text" src="texture/explanation_1.png" alt="Dinosaur" width="600"/>
             </div>
             <div id="button">
                 <button id="PlayButton">スタートする</button>
@@ -64,8 +54,8 @@
         </div>
     </div>
     <div id="game_overlay">
-        AED: 未所持<br>
-        行動: AEDを探し、赤丸内に入ってください
+        <img id="AED_icon" src="texture/AED_icon_off.png", width="80", height="60">
+        <p id="game_overlay_text">急いでAEDを探して、触れてください</p>
     </div>
     <div id="end_overlay">
         <div id="end_title">

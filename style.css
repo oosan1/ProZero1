@@ -18,9 +18,14 @@ body {
 
 #game_overlay {
     position: absolute;
-    background-color: white;
-    top: 20px;
-    left: 20px;
+    background-color: rgb(255, 255, 200);
+    width: 100%;
+    height: 70px;
+}
+
+#AED_icon {
+    margin: 5px;
+    float: left;
 }
 
 #end_overlay {
@@ -33,16 +38,13 @@ body {
 
 }
 
-#end_title {
-    font-size: 28px;
-    font-weight: bold;
-    color: black;
-    display: flex;
-    justify-content: center;
-    margin: 2% auto auto auto;
-}
-
-#end_time_text {
+#end_title,
+#end_time_text,
+#end_per_text,
+#end_time2_text,
+#end_time3_text,
+#end_time4_text,
+#end_info_text {
     font-size: 28px;
     font-weight: bold;
     color: black;
@@ -53,53 +55,41 @@ body {
 
 #end_per_text {
     font-size: 50px;
-    font-weight: bold;
-    color: black;
-    display: flex;
-    justify-content: center;
-    margin: 2% auto auto auto;
 }
 
 #end_time2_text {
     font-size: 20px;
-    font-weight: bold;
-    color: black;
-    display: flex;
-    justify-content: center;
     margin: 1% auto auto auto;
 }
 
 #end_time3_text {
     font-size: 20px;
-    font-weight: bold;
-    color: black;
-    display: flex;
-    justify-content: center;
     margin: 1% auto auto auto;
 }
 #end_time4_text {
     font-size: 40px;
-    font-weight: bold;
-    color: black;
-    display: flex;
-    justify-content: center;
     margin: 2% auto auto auto;
 }
 
 #end_info_text {
     font-size: 16px;
-    color: black;
-    display: flex;
-    justify-content: center;
     margin: 10% auto auto auto;
 }
 
 .box {
-    margin: 2% auto auto auto;
-    width: 50%;
-    height: 300px;
-    border: 1px solid #000;
+    margin: auto 2% auto 2%;
+    height: 60vh;
+    border: 5px solid #9b9b9b;
+    border-radius: 5px;
     overflow-y: scroll;
+}
+
+#box_text {
+    margin: 2%;
+}
+
+#title {
+    margin: auto 2% auto 2%;
 }
 
 #button {

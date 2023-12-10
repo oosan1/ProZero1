@@ -44,7 +44,6 @@ let player_position = {
 }
 
 const first_player_position_radius = 32;
-let player_position_last = {x: 5, y: -5};
 let moving_distance = {x: 0, y: 0};
 let maps_scale = 3; //マップ表示スケール constでもいい
 let total_moving_distance = 0; //合計移動距離
@@ -284,8 +283,8 @@ function movePosition() {
           //https://www.youtube.com/watch?v=VfCdHO5Y7jw
 
           //プレイ回数をCookieから算出
-          const play_count = (document.cookie.split("1") || []).length;
-          document.cookie = `count=${"1".repeat(play_count)}`;
+          const play_count = localStorage.getItem("PlayCount") || 0;
+          localStorage.setItem("PlayCount", String(play_count + 1));
           //データをデータベースに追加
           addDoc(collection(db, "users"), {
             startPoint: first_player_position,
@@ -317,9 +316,10 @@ function movePosition() {
             AED_get_floor = String(floor);
             AED_Flag = true;
             AED_get_time = Date.now() - game_start_time;
+            document.getElementById("AED_icon").src = "texture/AED_icon_on.png"
             document.getElementById(
-              "game_overlay",
-            ).innerText  = "AED: 所持\n行動: スタート地点へ戻ってください";
+              "game_overlay_text",
+            ).innerText  = "スタート地点へ戻ってください";
           }
         } else {
           // 同じ階にAEDが複数個ある場合は反復
@@ -445,6 +445,9 @@ function nearest_point(line, point, margin, line_vec2) {
 }
 
 function animTick() {
+  //画面サイズ
+  maps_scale = Math.max(window_size.x, window_size.y) / 400;
+
   //マップ移動
   maps.position = {
     x: -player_position.x * maps_scale + window_size.x / 2,
