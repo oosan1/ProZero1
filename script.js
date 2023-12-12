@@ -27,21 +27,44 @@ window.addEventListener("resize", resize);
 
 // 変数の初期化
 
-
-let first_floor
-if (Math.floor( Math.random() * 30 ) == 0) {
-  first_floor = "4";
-}else {
-  first_floor = String(Math.floor( Math.random() * 4 ) + 1);
+let first_player_position = {};
+let first_floor;
+let player_position;
+let random_player_pos;
+if (localStorage.getItem("floor")) {
+  first_floor = localStorage.getItem("floor")
+  random_player_pos = localStorage.getItem("player_number")
+  first_player_position = {
+    x: Number(localStorage.getItem("player_positionX")),
+    y: Number(localStorage.getItem("player_positionY"))
+  }
+  player_position = {
+    x: Number(localStorage.getItem("player_positionX")),
+    y: Number(localStorage.getItem("player_positionY"))
+  }
+  
+} else {
+  //初プレイなら
+  if (Math.floor( Math.random() * 50 ) == 0) {
+    first_floor = "4";
+    localStorage.setItem("floor", "4");
+  }else {
+    first_floor = String(Math.floor( Math.random() * 4 ) + 1);
+    localStorage.setItem("floor", first_floor);
+  }
+  random_player_pos = Math.floor( Math.random() * player_position_candidate[first_floor].length);
+  first_player_position = player_position_candidate[first_floor][random_player_pos];
+  player_position = {
+    x: player_position_candidate[first_floor][random_player_pos].x,
+    y: player_position_candidate[first_floor][random_player_pos].y
+  }
+  localStorage.setItem("player_positionX", String(player_position_candidate[first_floor][random_player_pos].x));
+  localStorage.setItem("player_positionY", String(player_position_candidate[first_floor][random_player_pos].y));
+  localStorage.setItem("player_number", String(random_player_pos));
 }
+console.log(random_player_pos)
 
 let floor = first_floor;
-const random_player_pos = Math.floor( Math.random() * player_position_candidate[floor].length);
-const first_player_position = player_position_candidate[floor][random_player_pos];
-let player_position = {
-  x: player_position_candidate[floor][random_player_pos].x,
-  y: player_position_candidate[floor][random_player_pos].y
-}
 
 const first_player_position_radius = 32;
 let moving_distance = {x: 0, y: 0};
@@ -200,8 +223,18 @@ function onDragEnd() {
 function movePosition() {
   // 位置情報管理
   let updated_player_position = { x: 0, y: 0 };
-  const moving_sec = performance.now() - last_time;
-  RunningSpeed_pixelPerMs = RunningSpeed / (3600000 / moving_sec) / MeterPerPixel; //処理速度に合わせて調整する
+  const moving_msec = performance.now() - last_time;
+  const WarningPage = document.getElementById("WarningOverlay");
+  let move_on_off = 1;
+  if (moving_msec > 23) {
+    //処理速度が低下している場合は停止
+    WarningPage.style.display = "block";
+    move_on_off = 0;
+  }else {
+    WarningPage.style.display = "none";
+  }
+
+  RunningSpeed_pixelPerMs = (RunningSpeed / (3600000 / moving_msec) / MeterPerPixel) * move_on_off; //処理速度に合わせて調整する
   last_time = performance.now();
   const planned_position = {
     x: player_position.x + RunningSpeed_pixelPerMs * moving_distance.x,
@@ -229,12 +262,13 @@ function movePosition() {
         end_Flag = true;
         moving_time = Date.now() - game_start_time;
         const all_time = moving_time + AED_Getting_time*1000 + AED_Using_time*1000;
+        const survival_rate = 100 - all_time / 1000 / 60 * 10;
         const getdata = async function get(){
-          const CategoryCol = collection(db, "score");
+          const CategoryCol = collection(db, "score2");
           const Snapshot = await getDocs(CategoryCol);
           const score_db = Snapshot.docs.map(doc => doc.data());
+          const EndTime4 =  document.getElementById("end_time4_text");
 
-          const survival_rate = 100 - all_time / 1000 / 60 * 10;
           let All_db = 0;
           let Avg_db = 0;
           let Avg2_db = 0;
@@ -260,36 +294,20 @@ function movePosition() {
           if (survival_rate > 30) {
             Avg_db = (Avg_db*(All_db - 1) + survival_rate)/(All_db);
             Avg2_db = (Avg2_db*(All_db - 1) + survival_rate**2)/(All_db);
-            updateDoc(doc(db, "score", "value"), {
+            updateDoc(doc(db, "score2", "value"), {
               All: All_db,
               Avg: Avg_db,
               Avg2: Avg2_db
             })
           }
-
-          //終了画面を表示
-          const EndPage = document.getElementById("end_overlay");
-          const EndTime = document.getElementById("end_time_text");
-          const EndTime2 = document.getElementById("end_time2_text");
-          const EndTime3 = document.getElementById("end_time3_text");
-          const EndTime4 =  document.getElementById("end_time4_text");
-          const EndPer = document.getElementById("end_per_text");
-          EndPage.style.display = "block";
-          EndPer.innerText = `救命率: ${Math.floor(survival_rate)}%`
-          EndTime.innerText = `全体時間: ${Math.floor(all_time / 1000 / 60)}m${Math.floor(all_time / 1000 % 60)}s`
-          EndTime2.innerText = `AED取得までの時間: ${Math.floor(AED_get_time / 1000 / 60)}m${Math.floor(AED_get_time / 1000 % 60)}s`
-          EndTime3.innerText = `AED取得から戻るまでの時間: ${Math.floor((moving_time - AED_get_time) / 1000 / 60)}m${Math.floor((moving_time -AED_get_time) / 1000 % 60)}s`
           EndTime4.innerText = `救命率偏差値: ${Math.floor(Deviation)}`
-          //https://www.youtube.com/watch?v=VfCdHO5Y7jw
-
-          //プレイ回数をCookieから算出
-          const play_count = localStorage.getItem("PlayCount") || 0;
-          localStorage.setItem("PlayCount", String(play_count + 1));
-          //データをデータベースに追加
-          addDoc(collection(db, "users"), {
-            startPoint: first_player_position,
+          addDoc(collection(db, "users2"), {
+            startPointX: first_player_position["x"],
+            startPointY: first_player_position["y"],
             startFloor: first_floor,
-            AEDPoint: AED_get_pos,
+            startNumber: random_player_pos,
+            AEDPointX: AED_get_pos["x"],
+            AEDPointY: AED_get_pos["y"],
             AEDFloor: AED_get_floor,
             all_moving_dis: total_moving_distance,
             AED_get_time: AED_get_time,
@@ -302,6 +320,34 @@ function movePosition() {
             timestamp: serverTimestamp()
           })
         }
+        //終了画面を表示
+        const EndPage = document.getElementById("end_overlay");
+        const EndTime = document.getElementById("end_time_text");
+        const EndTime2 = document.getElementById("end_time2_text");
+        const EndTime3 = document.getElementById("end_time3_text");
+        const EndPer = document.getElementById("end_per_text");
+        EndPage.style.display = "block";
+        EndPer.innerText = `救命率: ${Math.floor(survival_rate)}%`
+        EndTime.innerText = `全体時間: ${Math.floor(all_time / 1000 / 60)}m${Math.floor(all_time / 1000 % 60)}s`
+        EndTime2.innerText = `AED取得までの時間: ${Math.floor(AED_get_time / 1000 / 60)}m${Math.floor(AED_get_time / 1000 % 60)}s`
+        EndTime3.innerText = `AED取得から戻るまでの時間: ${Math.floor((moving_time - AED_get_time) / 1000 / 60)}m${Math.floor((moving_time -AED_get_time) / 1000 % 60)}s`
+        //https://www.youtube.com/watch?v=VfCdHO5Y7jw
+
+        //プレイ回数をCookieから算出
+        const play_count = localStorage.getItem("PlayCount") || 0;
+        localStorage.setItem("PlayCount", String(Number(play_count) + 1));
+
+        //次回用のデータをローカルストレージにセット
+        if (Math.floor( Math.random() * 50 ) == 0) {
+          localStorage.setItem("floor", "4");
+        }else {
+          localStorage.setItem("floor", String(Math.floor( Math.random() * 4 ) + 1));
+        }
+        const random_player_pos2 = Math.floor( Math.random() * player_position_candidate[first_floor].length);
+        localStorage.setItem("player_positionX", String(player_position_candidate[first_floor][random_player_pos2].x));
+        localStorage.setItem("player_positionY", String(player_position_candidate[first_floor][random_player_pos2].y));
+        localStorage.setItem("player_number", String(random_player_pos));
+        //データをデータベースに追加
         getdata();
       }
     } else {
