@@ -338,6 +338,7 @@ function movePosition() {
         localStorage.setItem("PlayCount", String(Number(play_count) + 1));
 
         //次回用のデータをローカルストレージにセット
+        let first_floor2;
         if (Math.floor( Math.random() * 50 ) == 0) {
           localStorage.setItem("floor", "4");
           first_floor2 = "4";
