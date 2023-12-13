@@ -340,13 +340,15 @@ function movePosition() {
         //次回用のデータをローカルストレージにセット
         if (Math.floor( Math.random() * 50 ) == 0) {
           localStorage.setItem("floor", "4");
+          first_floor2 = "4";
         }else {
-          localStorage.setItem("floor", String(Math.floor( Math.random() * 4 ) + 1));
+          first_floor2 = String(Math.floor( Math.random() * 4 ) + 1)
+          localStorage.setItem("floor", first_floor2);
         }
-        const random_player_pos2 = Math.floor( Math.random() * player_position_candidate[first_floor].length);
-        localStorage.setItem("player_positionX", String(player_position_candidate[first_floor][random_player_pos2].x));
-        localStorage.setItem("player_positionY", String(player_position_candidate[first_floor][random_player_pos2].y));
-        localStorage.setItem("player_number", String(random_player_pos));
+        const random_player_pos2 = Math.floor( Math.random() * player_position_candidate[first_floor2].length);
+        localStorage.setItem("player_positionX", String(player_position_candidate[first_floor2][random_player_pos2].x));
+        localStorage.setItem("player_positionY", String(player_position_candidate[first_floor2][random_player_pos2].y));
+        localStorage.setItem("player_number", String(random_player_pos2));
         //データをデータベースに追加
         getdata();
       }
