@@ -338,7 +338,9 @@ function movePosition() {
         localStorage.setItem("PlayCount", String(Number(play_count) + 1));
 
         //次回用のデータをローカルストレージにセット
+        console.log("a")
         let first_floor2;
+        console.log("b")
         if (Math.floor( Math.random() * 50 ) == 0) {
           localStorage.setItem("floor", "4");
           first_floor2 = "4";
@@ -346,10 +348,12 @@ function movePosition() {
           first_floor2 = String(Math.floor( Math.random() * 4 ) + 1)
           localStorage.setItem("floor", first_floor2);
         }
+        console.log("C")
         const random_player_pos2 = Math.floor( Math.random() * player_position_candidate[first_floor2].length);
         localStorage.setItem("player_positionX", String(player_position_candidate[first_floor2][random_player_pos2].x));
         localStorage.setItem("player_positionY", String(player_position_candidate[first_floor2][random_player_pos2].y));
         localStorage.setItem("player_number", String(random_player_pos2));
+        console.log("d")
         //データをデータベースに追加
         getdata();
       }
